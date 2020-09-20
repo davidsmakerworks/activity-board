@@ -351,8 +351,9 @@ def main():
                         
                         pygame.event.clear()
                     elif event.button == buttons.BTN_BACK:
-                        pygame.quit()
-                        quit()
+                        if js.get_button(buttons.BTN_RB) and js.get_button(buttons.BTN_LB):
+                            pygame.quit()
+                            quit()
         else:
             raise RuntimeError('Invalid state in main loop')
         
