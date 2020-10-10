@@ -329,8 +329,8 @@ def main():
                             oops_sound.play()
                         
                         pygame.event.clear()
-                    elif event.button == buttons.BTN_RS:
-                        if js.get_button(buttons.BTN_LS):
+                    elif event.button == buttons.BTN_Y:
+                        if js.get_button(buttons.BTN_X):
                             reveal_all_sound.play()
 
                             for d in doors:

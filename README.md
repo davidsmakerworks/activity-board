@@ -20,7 +20,7 @@ Edit the file **activities.txt** with your desired activity choices. Use a back 
 - Move selection with **digital pad or POV hat**
 - Press **A** to open selected door
 - Press **B** to return to selection screen
-- Hold **LS** then press **RS** to reveal all doors
+- Hold **X** then press **Y** to reveal all doors
 - Press **START** to shuffle and reset all doors
 - Hold **LB** and **RB** then press **BACK** to exit
 
