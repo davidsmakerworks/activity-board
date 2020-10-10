@@ -54,6 +54,7 @@ class State(Enum):
     draw = 2
     select = 3
     display = 4
+    reveal_all = 5
 
 # This is currently hard coded to work only with a 1920x1080 screen and a 4x3
 # arrangement of doors.
@@ -76,7 +77,7 @@ class Door:
     def screen_y(self):
         return ((self.number - 1) // DOORS_HORIZ) * DOOR_HEIGHT
 
-    def __init__(self, number=None, number_font=None, activity_small_font=None, activity_full_font=None, activity=None, is_selected=False, is_open=False):
+    def __init__(self, number=None, number_font=None, activity_small_font=None, activity_full_font=None, activity=None, is_selected=False, is_open=False, is_revealed=False):
         self.number = number
         self.number_font = number_font
         self.activity_small_font = activity_small_font
@@ -84,6 +85,7 @@ class Door:
         self.activity = activity
         self.is_selected = is_selected
         self.is_open = is_open
+        self.is_revealed = is_revealed
 
     def _get_door_surface(self):
         surf = pygame.Surface((DOOR_WIDTH, DOOR_HEIGHT))
@@ -98,6 +100,15 @@ class Door:
 
             pygame.draw.line(surf, Color('red'), (20, 40), (DOOR_WIDTH - 20, DOOR_HEIGHT - 40), 40)
             pygame.draw.line(surf, Color('red'), (20, DOOR_HEIGHT - 40), (DOOR_WIDTH - 20, 40), 40)
+        elif self.is_revealed:
+            activity_small_surface = self._create_text_surface(self.activity, self.activity_small_font, 8)
+
+            door_rect = Rect(self.screen_x, self.screen_y, DOOR_WIDTH, DOOR_HEIGHT)
+
+            small_rect = activity_small_surface.get_rect()
+
+            surf.fill(Color('black'))
+            surf.blit(activity_small_surface, ((DOOR_WIDTH // 2) - (small_rect.width // 2), (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
         else:
             if self.is_selected:
                 surf.fill(Color('orange'))
@@ -234,6 +245,8 @@ def main():
 
     start_sound = pygame.mixer.Sound('start.wav')
 
+    reveal_all_sound = pygame.mixer.Sound('revealall.wav')
+
     screen = Screen(SCREEN_WIDTH, SCREEN_HEIGHT)
 
     door_font = pygame.font.Font('freesansbold.ttf', DOOR_FONT_SIZE)
@@ -316,6 +329,15 @@ def main():
                             oops_sound.play()
                         
                         pygame.event.clear()
+                    elif event.button == buttons.BTN_RS:
+                        if js.get_button(buttons.BTN_LS):
+                            reveal_all_sound.play()
+
+                            for d in doors:
+                                if not d.is_open:
+                                    d.is_revealed = True
+                            
+                            state = State.draw
                     elif event.button == buttons.BTN_START:
                         state = State.start
                     elif event.button == buttons.BTN_BACK:
