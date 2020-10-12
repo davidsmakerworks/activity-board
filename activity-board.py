@@ -27,6 +27,7 @@
 
 import pygame
 import random
+import sys
 import time
 
 import buttons
@@ -219,6 +220,16 @@ def update_door_selection(x, y, movement):
     return (x, y)
 
 def main():
+    debug = False
+    debug2 = False
+
+    if len(sys.argv) > 1:
+        if sys.argv[1].lower() == 'debug':
+            debug = True
+        elif sys.argv[1].lower() == 'debug2':
+            debug = True
+            debug2 = True
+
     pygame.mixer.init(buffer=512)
     pygame.init()
 
@@ -315,7 +326,12 @@ def main():
             state = State.select
         elif state == State.select:
             for event in pygame.event.get():
+                if debug2:
+                    print(f'Pygame event type {event.type}')
                 if event.type == JOYBUTTONDOWN:
+                    if debug:
+                        print(f'Joystick button {event.button} pressed')
+
                     if event.button == buttons.BTN_A:
                         if not doors[selected_door].is_open:
                             open_sound.play()
@@ -345,6 +361,9 @@ def main():
                             pygame.quit()
                             quit()
                 elif event.type == JOYHATMOTION:
+                    if debug:
+                        print(f'Joystick hat motion {event.value}')
+
                     if event.value[0] or event.value[1]:
                         prev_selected = selected_door
 

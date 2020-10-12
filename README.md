@@ -28,3 +28,8 @@ Edit the file **activities.txt** with your desired activity choices. Use a back 
 - Screen resolution must be exactly 1920x1080
 - Joystick is required - no keyboard support at this time
 - Time delays are optimized for Raspberry Pi 3 and might need to be changed for other versions
+
+## Debugging
+- Debug mode can be activated by passing the command line argument **debug**
+- Extra debugging can be activated by passing the command line argument **debug2**
+- No dashes or slashes are used before the argument. Example: `python3 activity-board.py debug`
