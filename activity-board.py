@@ -79,7 +79,8 @@ class Screen:
         self.width = width
         self.height = height
 
-        self.surface = pygame.display.set_mode((self.width, self.height), flags=FULLSCREEN)
+        self.surface = pygame.display.set_mode(
+                (self.width, self.height), flags=FULLSCREEN)
 
 class Door:
     @property
@@ -103,6 +104,9 @@ class Door:
         self.is_open = is_open
         self.is_revealed = is_revealed
 
+
+    # TODO: Remove magic numbers related to ellipse size
+    # and selection rectangle
     def _get_door_surface(self):
         surf = pygame.Surface((DOOR_WIDTH, DOOR_HEIGHT))
 
@@ -121,12 +125,16 @@ class Door:
                     surf, DOOR_OPENCOLOR, (20, DOOR_HEIGHT - 40),
                     (DOOR_WIDTH - 20, 40), 40)
         elif self.is_revealed:
-            activity_small_surface = self._create_text_surface(self.activity, self.activity_small_font, 8)
+            activity_small_surface = self._create_text_surface(
+                    self.activity, self.activity_small_font, 8)
 
             small_rect = activity_small_surface.get_rect()
 
             surf.fill(SCREEN_BGCOLOR)
-            surf.blit(activity_small_surface, ((DOOR_WIDTH // 2) - (small_rect.width // 2), (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
+            surf.blit(
+                    activity_small_surface,
+                    ((DOOR_WIDTH // 2) - (small_rect.width // 2),
+                    (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
         else:
             if self.is_selected:
                 surf.fill(DOOR_SELCOLOR)
@@ -137,10 +145,14 @@ class Door:
 
             pygame.draw.ellipse(surf, DOOR_OVALCOLOR, Rect(40, 40, 400, 280))
 
-            number_surface = self.number_font.render(str(self.index + 1), True, DOOR_NUMCOLOR)
+            number_surface = self.number_font.render(
+                    str(self.index + 1), True, DOOR_NUMCOLOR)
             number_rect = number_surface.get_rect()
 
-            surf.blit(number_surface, ((DOOR_WIDTH // 2) - (number_rect.width // 2), (DOOR_HEIGHT // 2) - (number_rect.height // 2) + 10))
+            surf.blit(
+                    number_surface,
+                    ((DOOR_WIDTH // 2) - (number_rect.width // 2),
+                    (DOOR_HEIGHT // 2) - (number_rect.height // 2) + 10))
 
         return surf
 
@@ -183,20 +195,29 @@ class Door:
     def draw_door(self, dest_surface):
         dest_surface.blit(self._get_door_surface(), (self.screen_x, self.screen_y))
 
+    # TODO: Make this part of _get_door_surface and
+    # make revealed portion a property of the class
     def animate_open(self, dest_surface):
-        activity_small_surface = self._create_text_surface(self.activity, self.activity_small_font, 8)
-        activity_full_surface = self._create_text_surface(self.activity, self.activity_full_font, 16)
+        activity_small_surface = self._create_text_surface(
+                self.activity, self.activity_small_font, 8)
+        activity_full_surface = self._create_text_surface(
+                self.activity, self.activity_full_font, 16)
 
         small_rect = activity_small_surface.get_rect()
 
         door_surface = pygame.Surface((DOOR_WIDTH, DOOR_HEIGHT))
         door_surface.fill(SCREEN_BGCOLOR)
-        door_surface.blit(activity_small_surface, ((DOOR_WIDTH // 2) - (small_rect.width // 2), (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
+        door_surface.blit(
+                activity_small_surface,
+                ((DOOR_WIDTH // 2) - (small_rect.width // 2),
+                (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
 
         for revealed_width in range(8, DOOR_WIDTH + 1, 8):
             offset = revealed_width // 2
             left = (self.screen_x + (DOOR_WIDTH // 2)) - offset
-            area_rect = Rect((DOOR_WIDTH // 2 - offset), 0, revealed_width, DOOR_HEIGHT)
+            area_rect = Rect(
+                    (DOOR_WIDTH // 2 - offset), 0,
+                    revealed_width, DOOR_HEIGHT)
 
             dest_surface.blit(door_surface, (left, self.screen_y), area_rect)
 
@@ -270,11 +291,8 @@ def main():
     move_sounds.append(pygame.mixer.Sound('move4.wav'))
 
     open_sound = pygame.mixer.Sound('opendoor.wav')
-
     oops_sound = pygame.mixer.Sound('oops.wav')
-
     start_sound = pygame.mixer.Sound('start.wav')
-
     reveal_all_sound = pygame.mixer.Sound('revealall.wav')
 
     screen = Screen(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -398,7 +416,7 @@ def main():
 
                         (sel_x, sel_y) = update_door_selection(sel_x, sel_y, event.value)
                         selected_door = get_door_index(sel_x, sel_y)
-                        
+
                         doors[get_door_index(sel_x, sel_y)].is_selected = True
 
                         if selected_door != prev_selected:
@@ -435,4 +453,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
+    
