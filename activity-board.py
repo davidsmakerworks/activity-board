@@ -395,8 +395,10 @@ def main():
                         prev_selected = selected_door
 
                         doors[selected_door].is_selected = False
+
                         (sel_x, sel_y) = update_door_selection(sel_x, sel_y, event.value)
                         selected_door = get_door_index(sel_x, sel_y)
+                        
                         doors[get_door_index(sel_x, sel_y)].is_selected = True
 
                         if selected_door != prev_selected:
