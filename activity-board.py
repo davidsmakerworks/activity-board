@@ -35,6 +35,8 @@ import buttons
 from enum import Enum, unique
 from pygame.locals import *
 
+# TODO: Move this to a configuration file
+
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 
@@ -48,14 +50,24 @@ ACTIVITY_FULL_FONT_SIZE = 240
 DOORS_HORIZ = 4
 DOORS_VERT = 3
 
+SCREEN_BGCOLOR = Color('black')
+
+DOOR_BGCOLOR = Color('red')
+DOOR_OVALCOLOR = Color('yellow')
+DOOR_NUMCOLOR = Color('red')
+DOOR_SELCOLOR = Color('orange')
+DOOR_OPENCOLOR = Color('red')
+
+TEXT_COLOR = Color('white')
+
 @unique
 class State(Enum):
-    start = 0
-    starting = 1
-    draw = 2
-    select = 3
-    display = 4
-    reveal_all = 5
+    START = 0
+    STARTING = 1
+    DRAW = 2
+    SELECT = 3
+    DISPLAY = 4
+    REVEAL_ALL = 5
 
 # This is currently hard coded to work only with a 1920x1080 screen and a 4x3
 # arrangement of doors.
@@ -72,14 +84,17 @@ class Screen:
 class Door:
     @property
     def screen_x(self):
-        return ((self.number - 1) % DOORS_HORIZ) * DOOR_WIDTH
+        return (self.index % DOORS_HORIZ) * DOOR_WIDTH
 
     @property
     def screen_y(self):
-        return ((self.number - 1) // DOORS_HORIZ) * DOOR_HEIGHT
+        return (self.index // DOORS_HORIZ) * DOOR_HEIGHT
 
-    def __init__(self, number=None, number_font=None, activity_small_font=None, activity_full_font=None, activity=None, is_selected=False, is_open=False, is_revealed=False):
-        self.number = number
+    def __init__(
+            self, index=None, number_font=None, activity_small_font=None,
+            activity_full_font=None, activity=None, is_selected=False,
+            is_open=False, is_revealed=False):
+        self.index = index
         self.number_font = number_font
         self.activity_small_font = activity_small_font
         self.activity_full_font = activity_full_font
@@ -93,34 +108,36 @@ class Door:
 
         if self.is_open:
             if self.is_selected:
-                surf.fill(Color('orange'))
+                surf.fill(DOOR_SELCOLOR)
             else:
-                surf.fill(Color('black'))
+                surf.fill(SCREEN_BGCOLOR)
 
-            surf.fill(Color('black'), Rect(20, 20, 440, 320))
+            surf.fill(SCREEN_BGCOLOR, Rect(20, 20, 440, 320))
 
-            pygame.draw.line(surf, Color('red'), (20, 40), (DOOR_WIDTH - 20, DOOR_HEIGHT - 40), 40)
-            pygame.draw.line(surf, Color('red'), (20, DOOR_HEIGHT - 40), (DOOR_WIDTH - 20, 40), 40)
+            pygame.draw.line(
+                    surf, DOOR_OPENCOLOR, (20, 40),
+                    (DOOR_WIDTH - 20, DOOR_HEIGHT - 40), 40)
+            pygame.draw.line(
+                    surf, DOOR_OPENCOLOR, (20, DOOR_HEIGHT - 40),
+                    (DOOR_WIDTH - 20, 40), 40)
         elif self.is_revealed:
             activity_small_surface = self._create_text_surface(self.activity, self.activity_small_font, 8)
 
-            door_rect = Rect(self.screen_x, self.screen_y, DOOR_WIDTH, DOOR_HEIGHT)
-
             small_rect = activity_small_surface.get_rect()
 
-            surf.fill(Color('black'))
+            surf.fill(SCREEN_BGCOLOR)
             surf.blit(activity_small_surface, ((DOOR_WIDTH // 2) - (small_rect.width // 2), (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
         else:
             if self.is_selected:
-                surf.fill(Color('orange'))
+                surf.fill(DOOR_SELCOLOR)
             else:
-                surf.fill(Color('black'))
+                surf.fill(SCREEN_BGCOLOR)
 
-            surf.fill(Color('red'), Rect(20, 20, 440, 320))
+            surf.fill(DOOR_BGCOLOR, Rect(20, 20, 440, 320))
 
-            pygame.draw.ellipse(surf, Color('yellow'), Rect(40, 40, 400, 280))
+            pygame.draw.ellipse(surf, DOOR_OVALCOLOR, Rect(40, 40, 400, 280))
 
-            number_surface = self.number_font.render(str(self.number), True, Color('red'))
+            number_surface = self.number_font.render(str(self.index + 1), True, DOOR_NUMCOLOR)
             number_rect = number_surface.get_rect()
 
             surf.blit(number_surface, ((DOOR_WIDTH // 2) - (number_rect.width // 2), (DOOR_HEIGHT // 2) - (number_rect.height // 2) + 10))
@@ -133,7 +150,7 @@ class Door:
         text_surfaces = list()
 
         for line in text_lines:
-            text_surfaces.append(font.render(line, True, Color('white')))
+            text_surfaces.append(font.render(line, True, TEXT_COLOR))
 
         total_height = 0
         max_width = 0
@@ -170,12 +187,10 @@ class Door:
         activity_small_surface = self._create_text_surface(self.activity, self.activity_small_font, 8)
         activity_full_surface = self._create_text_surface(self.activity, self.activity_full_font, 16)
 
-        door_rect = Rect(self.screen_x, self.screen_y, DOOR_WIDTH, DOOR_HEIGHT)
-
         small_rect = activity_small_surface.get_rect()
 
         door_surface = pygame.Surface((DOOR_WIDTH, DOOR_HEIGHT))
-        door_surface.fill(Color('black'))
+        door_surface.fill(SCREEN_BGCOLOR)
         door_surface.blit(activity_small_surface, ((DOOR_WIDTH // 2) - (small_rect.width // 2), (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
 
         for revealed_width in range(8, DOOR_WIDTH + 1, 8):
@@ -191,10 +206,13 @@ class Door:
 
         pygame.display.update()
 
-        dest_surface.fill(Color('black'))
+        dest_surface.fill(SCREEN_BGCOLOR)
 
         full_rect = activity_full_surface.get_rect()
-        dest_surface.blit(activity_full_surface, ((SCREEN_WIDTH // 2) - (full_rect.width // 2), (SCREEN_HEIGHT // 2) - (full_rect.height // 2)))
+        dest_surface.blit(
+                activity_full_surface,
+                ((SCREEN_WIDTH // 2) - (full_rect.width // 2),
+                (SCREEN_HEIGHT // 2) - (full_rect.height // 2)))
 
         pygame.display.update()
         
@@ -205,7 +223,8 @@ def get_door_index(x, y):
 
 def update_door_selection(x, y, movement):
     x = x + movement[0]
-    y = y - movement[1] # Y axis is inverted with respect to our coordinate system
+    # Y axis is inverted with respect to our coordinate system
+    y = y - movement[1]
 
     if x < 0:
         x = 0
@@ -261,13 +280,15 @@ def main():
     screen = Screen(SCREEN_WIDTH, SCREEN_HEIGHT)
 
     door_font = pygame.font.Font('freesansbold.ttf', DOOR_FONT_SIZE)
-    activity_small_font = pygame.font.Font('freesansbold.ttf', ACTIVITY_SMALL_FONT_SIZE)
-    activity_full_font = pygame.font.Font('freesansbold.ttf', ACTIVITY_FULL_FONT_SIZE)
+    activity_small_font = pygame.font.Font(
+            'freesansbold.ttf', ACTIVITY_SMALL_FONT_SIZE)
+    activity_full_font = pygame.font.Font(
+            'freesansbold.ttf', ACTIVITY_FULL_FONT_SIZE)
 
-    state = State.start
+    state = State.START
 
     while True:
-        if state == State.start:
+        if state == State.START:
             doors = []
 
             activity_file = open('activities.txt', 'r')
@@ -283,7 +304,13 @@ def main():
                 activity = random.choice(activities)
                 activities.remove(activity)
 
-                doors.append(Door(number=i+1, number_font=door_font, activity_small_font=activity_small_font, activity_full_font=activity_full_font, activity=activity, is_open=True))
+                doors.append(Door(
+                        index=i,
+                        number_font=door_font,
+                        activity_small_font=activity_small_font,
+                        activity_full_font=activity_full_font,
+                        activity=activity,
+                        is_open=True))
 
             doors[0].is_selected = True
 
@@ -300,8 +327,8 @@ def main():
             start_sound.play()
 
             update_needed = True
-            state = State.starting
-        elif state == State.starting:
+            state = State.STARTING
+        elif state == State.STARTING:
             time.sleep(0.075)
 
             if reveal_list:
@@ -316,15 +343,15 @@ def main():
 
                 update_needed = True
             else:
-                state = State.draw
-        elif state == State.draw:
+                state = State.DRAW
+        elif state == State.DRAW:
             for d in doors:
                 d.draw_door(screen.surface)
             
             update_needed = True
 
-            state = State.select
-        elif state == State.select:
+            state = State.SELECT
+        elif state == State.SELECT:
             for event in pygame.event.get():
                 if debug2:
                     print(f'Pygame event type {event.type}')
@@ -340,7 +367,7 @@ def main():
                             
                             doors[selected_door].animate_open(screen.surface)
                             
-                            state = State.display
+                            state = State.DISPLAY
                         else:
                             oops_sound.play()
                         
@@ -353,9 +380,9 @@ def main():
                                 if not d.is_open:
                                     d.is_revealed = True
                             
-                            state = State.draw
+                            state = State.DRAW
                     elif event.button == buttons.BTN_START:
-                        state = State.start
+                        state = State.START
                     elif event.button == buttons.BTN_BACK:
                         if js.get_button(buttons.BTN_RB) and js.get_button(buttons.BTN_LB):
                             pygame.quit()
@@ -376,19 +403,19 @@ def main():
                             move_sound = random.choice(move_sounds)
                             move_sound.play()            
                 
-                        state = State.draw
+                        state = State.DRAW
                         
                         pygame.event.clear()
                 elif event.type == QUIT:
                     pygame.quit()
                     quit()
-        elif state == State.display:
+        elif state == State.DISPLAY:
             for event in pygame.event.get():
                 if event.type == JOYBUTTONDOWN:
                     if event.button == buttons.BTN_B:
-                        screen.surface.fill(Color('BLACK'))
+                        screen.surface.fill(SCREEN_BGCOLOR)
 
-                        state = State.draw
+                        state = State.DRAW
                         
                         pygame.event.clear()
                     elif event.button == buttons.BTN_BACK:
