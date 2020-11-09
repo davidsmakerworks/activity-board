@@ -59,6 +59,7 @@ DOOR_SELCOLOR = Color('orange')
 DOOR_OPENCOLOR = Color('red')
 
 TEXT_COLOR = Color('white')
+REVEAL_COLOR = Color('gray')
 
 @unique
 class State(Enum):
@@ -110,7 +111,7 @@ class Door:
     def _get_door_surface(self):
         surf = pygame.Surface((DOOR_WIDTH, DOOR_HEIGHT))
 
-        if self.is_open:
+        if self.is_open and not self.is_revealed:
             if self.is_selected:
                 surf.fill(DOOR_SELCOLOR)
             else:
@@ -125,8 +126,9 @@ class Door:
                     surf, DOOR_OPENCOLOR, (20, DOOR_HEIGHT - 40),
                     (DOOR_WIDTH - 20, 40), 40)
         elif self.is_revealed:
+            color = TEXT_COLOR if self.is_open else REVEAL_COLOR
             activity_small_surface = self._create_text_surface(
-                    self.activity, self.activity_small_font, 8)
+                    self.activity, self.activity_small_font, 8, color=color)
 
             small_rect = activity_small_surface.get_rect()
 
@@ -156,13 +158,16 @@ class Door:
 
         return surf
 
-    def _create_text_surface(self, text, font, line_spacing):
+    def _create_text_surface(self, text, font, line_spacing, color=None):
+        if not color:
+            color = TEXT_COLOR
+
         text_lines = text.split('`')
 
         text_surfaces = list()
 
         for line in text_lines:
-            text_surfaces.append(font.render(line, True, TEXT_COLOR))
+            text_surfaces.append(font.render(line, True, color))
 
         total_height = 0
         max_width = 0
@@ -395,8 +400,7 @@ def main():
                             reveal_all_sound.play()
 
                             for d in doors:
-                                if not d.is_open:
-                                    d.is_revealed = True
+                                d.is_revealed = True
                             
                             state = State.DRAW
                     elif event.button == buttons.BTN_START:
