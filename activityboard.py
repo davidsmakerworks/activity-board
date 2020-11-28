@@ -323,6 +323,7 @@ def build_door_list(activities, doors_hidden=True):
 
     return doors
 
+
 # TODO: Evaluate moving pygame event loop outside of state machine loop
 def main():
     debug = False
@@ -485,7 +486,7 @@ def main():
             for event in pygame.event.get():
                 if event.type == JOYBUTTONDOWN:
                     if event.button == buttons.BTN_START:
-                            state = State.START
+                        state = State.START
                     elif event.button == buttons.BTN_BACK:
                         if (js.get_button(buttons.BTN_RB)
                                 and js.get_button(buttons.BTN_LB)):
