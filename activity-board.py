@@ -11,8 +11,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -22,8 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Sound effects created by Little Robot Sound Factory (www.littlerobotsoundfactory.com)
-# and licensed under Creative Commons (https://creativecommons.org/licenses/by/3.0/)
+# Sound effects created by Little Robot Sound Factory
+# (www.littlerobotsoundfactory.com)
+# and licensed under Creative Commons
+# (https://creativecommons.org/licenses/by/3.0/)
 
 import pygame
 import random
@@ -198,7 +200,9 @@ class Door:
         return text_surface
 
     def draw_door(self, dest_surface):
-        dest_surface.blit(self._get_door_surface(), (self.screen_x, self.screen_y))
+        dest_surface.blit(
+                self._get_door_surface(),
+                (self.screen_x, self.screen_y))
 
     # TODO: Make this part of _get_door_surface and
     # make revealed portion a property of the class
@@ -406,7 +410,8 @@ def main():
                     elif event.button == buttons.BTN_START:
                         state = State.START
                     elif event.button == buttons.BTN_BACK:
-                        if js.get_button(buttons.BTN_RB) and js.get_button(buttons.BTN_LB):
+                        if (js.get_button(buttons.BTN_RB)
+                                and js.get_button(buttons.BTN_LB)):
                             pygame.quit()
                             quit()
                 elif event.type == JOYHATMOTION:
@@ -418,7 +423,8 @@ def main():
 
                         doors[selected_door].is_selected = False
 
-                        (sel_x, sel_y) = update_door_selection(sel_x, sel_y, event.value)
+                        (sel_x, sel_y) = update_door_selection(
+                                sel_x, sel_y, event.value)
                         selected_door = get_door_index(sel_x, sel_y)
 
                         doors[get_door_index(sel_x, sel_y)].is_selected = True
@@ -443,7 +449,8 @@ def main():
                         
                         pygame.event.clear()
                     elif event.button == buttons.BTN_BACK:
-                        if js.get_button(buttons.BTN_RB) and js.get_button(buttons.BTN_LB):
+                        if (js.get_button(buttons.BTN_RB)
+                                and js.get_button(buttons.BTN_LB)):
                             pygame.quit()
                             quit()
         else:
