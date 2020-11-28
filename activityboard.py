@@ -183,7 +183,7 @@ class Door:
 
         text_lines = text.split('`')
 
-        text_surfaces = list()
+        text_surfaces = []
 
         for line in text_lines:
             text_surfaces.append(font.render(line, True, text_color))
