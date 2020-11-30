@@ -8,7 +8,7 @@
  Sound effects created by Little Robot Sound Factory (www.littlerobotsoundfactory.com) and licensed under Creative Commons (https://creativecommons.org/licenses/by/3.0/)
 
 ## Requirements
-- Python 3
+- Python 3.6 or later
 - PyGame 1.9 or later
 - USB game controller
 - 1920x1080 screen resolution

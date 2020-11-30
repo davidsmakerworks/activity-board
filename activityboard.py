@@ -1,6 +1,3 @@
-# Activity Selection Board
-# github.com/davidsmakerworks/activity-board
-
 # MIT License
 
 # Copyright (c) 2020 David Rice
@@ -28,6 +25,28 @@
 # and licensed under Creative Commons
 # (creativecommons.org/licenses/by/3.0/)
 
+"""
+Activity Selection Board
+
+A fun way to select random activities.
+
+This is currently hard coded to work only with a 1920x1080 screen and a 4x3
+arrangement of doors. A USB joystick is required.
+
+Command-line parameters:
+debug -- print debugging information about all JOYBUTTONDOWN and JOYHATMOTION
+    events
+debug2 -- print debugging information about all pygame events
+
+For full documentation, see github.com/davidsmakerworks/activity-board
+
+TODO: Move configuration options to a configuration file.
+
+TODO: Generalize size and resolution of door grid.
+
+TODO: Implement alternative control schemes.
+"""
+
 
 import random
 import sys
@@ -40,8 +59,6 @@ import buttons
 
 from pygame.locals import *
 
-
-# TODO: Move these to a configuration file
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
@@ -72,20 +89,34 @@ REVEAL_COLOR = Color('gray')
 
 @unique
 class State(Enum):
-    START = 0 # Read activities and initialize door list
-    STARTING = 1 # Animated startup (draw one door at a time)
-    DRAW = 2 # Draw all doors on screen
-    SELECT = 3 # Interactive selection of door to open
-    DISPLAY = 4 # Displaying activity in full screen
-    REVEAL_ALL = 5 # Revealing all doors to show what was behind them
-    SHUTDOWN = 6 # Shutting down
+    """
+    Enumeration to define states for the finite state machine in the main
+    loop.
+
+    States:
+    START -- Read activities and initialize door list
+    STARTING -- Animated startup (draw one door at a time)
+    DRAW -- Draw all doors on screen
+    SELECT -- Interactive selection of door to open
+    DISPLAY -- Displaying activity in full screen
+    REVEAL_ALL -- Revealing all doors to show what was behind them
+    SHUTDOWN -- Shutting down
+    """
+    START = 0
+    STARTING = 1
+    DRAW = 2
+    SELECT = 3
+    DISPLAY = 4
+    REVEAL_ALL = 5
+    SHUTDOWN = 6
 
 
-# This is currently hard coded to work only with a 1920x1080 screen and a 4x3
-# arrangement of doors.
-#
-# TODO: Generalize resolution and size of door grid
 class Screen:
+    """
+    Class representing the pyhsical screen where the board is displayed.
+
+    Initializes the pygame display and gets the corresponding surface.
+    """
     def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT):
         self.width = width
         self.height = height
@@ -94,13 +125,40 @@ class Screen:
                 (self.width, self.height), flags=FULLSCREEN)
 
 class Door:
+    """
+    Class representing a single door on the activity board.
+
+    Properties:
+    index -- zero-based index of the door (i.e., index 0 = door 1, etc.)
+    number_font -- pygame Font object used to render the door number
+    activity_font_small -- pygame Font object used to render the activity
+        text while the door is opening
+    activity_font_full -- pygame Font object used to render the activity
+        text when displaying on full screen
+    activity -- text of the activity (backticks [`] represent newlines)
+    is_selected -- boolean representing whether the door is currently
+        selected in the interface (i.e., should be drawn with a box around
+        the door)
+    is_open -- boolean indicating that the door has already been opened and
+        should be rendered as an X
+    is_revealed -- boolean indicating that the door should be revealed
+        (i.e., endgame display showing what was behind all doors)
+    is_hidden -- boolean representing if door is hidden (i.e., not rendered
+        when calling draw(); used for animated startup routine )
+    """
     @property
     def screen_x(self):
+        """
+        Calculate and return the screen X coordinate (in pixels) of the door.
+        """
         return (self.index % DOORS_HORIZ) * DOOR_WIDTH
 
 
     @property
     def screen_y(self):
+        """
+        Calculate and return the screen Y coordinate (in pixels) of the door.
+        """
         return (self.index // DOORS_HORIZ) * DOOR_HEIGHT
 
 
@@ -108,6 +166,7 @@ class Door:
             self, index=None, number_font=None, activity_small_font=None,
             activity_full_font=None, activity=None, is_selected=False,
             is_open=False, is_revealed=False, is_hidden=False):
+        """Initialize all object properties as shown in class documentation."""
         self.index = index
         self.number_font = number_font
         self.activity_small_font = activity_small_font
@@ -119,14 +178,22 @@ class Door:
         self.is_hidden = is_hidden
 
 
-    # TODO: Remove magic numbers related to ellipse size
-    # and selection rectangle
     def _get_door_surface(self):
+        """
+        Build and return a pygame Surface object representing the door in
+        its current state based on the Door object properties.
+
+        TODO: Remove magic numbers related to ellipse size
+        and selection rectangle
+        """
         surf = pygame.Surface((DOOR_WIDTH, DOOR_HEIGHT))
 
         if self.is_hidden:
+            # Door is hidden - render as blank box
             surf.fill(SCREEN_BGCOLOR)
         elif self.is_open and not self.is_revealed:
+            # If door has been opened and we are not in the endgame reveal,
+            # render door as an X
             if self.is_selected:
                 surf.fill(DOOR_SELCOLOR)
             else:
@@ -141,6 +208,9 @@ class Door:
                     surf, DOOR_OPENCOLOR, (20, DOOR_HEIGHT - 40),
                     (DOOR_WIDTH - 20, 40), 40)
         elif self.is_revealed:
+            # Endgame reveal - render with standard text color if the door
+            # was opened during the game, otherwise render in a distinctive
+            # color to show that the door was not opened during the game.
             text_color = TEXT_COLOR if self.is_open else REVEAL_COLOR
 
             activity_small_surface = self._create_text_surface(
@@ -156,6 +226,8 @@ class Door:
                     (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
         else:
             if self.is_selected:
+                # If the door is currently selected, render a box around the
+                # door to indicate this.
                 surf.fill(DOOR_SELCOLOR)
             else:
                 surf.fill(SCREEN_BGCOLOR)
@@ -176,8 +248,21 @@ class Door:
         return surf
 
 
-    # TODO: Implement word wrap
     def _create_text_surface(self, text, font, line_spacing, text_color=None):
+        """
+        Create and return a pygame Surface object containing the specified
+        text.
+
+        Arguments:
+        text -- text string to be rendered with newlines repersented as
+            backticks (`)
+        font -- pygame Font object to use for rendering text
+        line_spacing -- space between lines in pixels
+        text_color -- pygame Color object representing text color if the
+            default is not used
+
+        TODO: Implement word wrap.
+        """
         if not text_color:
             text_color = TEXT_COLOR
 
@@ -218,14 +303,32 @@ class Door:
 
 
     def draw(self, dest_surface):
+        """
+        Draws the door on the specified surface.
+
+        Position of door is calculated based on door index.
+
+        Arguments:
+        dest_surface -- the pygame Surface object on which to draw the door
+            which is assumed to be 1920x1080.
+        """
         dest_surface.blit(
                 self._get_door_surface(),
                 (self.screen_x, self.screen_y))
 
 
-    # TODO: Make this part of _get_door_surface and
-    # make revealed portion a property of the class
     def animate_open(self, dest_surface):
+        """
+        Performs animation of door opening and displays activity in
+        full screen after animation is complete.
+
+        Arguments:
+        dest_surface -- pygame Surface on which to render the door animation
+            and full-screen activity
+
+        TODO: Make this part of _get_door_surface and make revealed
+            portion a property of the class
+        """
         activity_small_surface = self._create_text_surface(
                 self.activity, self.activity_small_font, 8)
         activity_full_surface = self._create_text_surface(
@@ -267,12 +370,23 @@ class Door:
 
 
 def get_door_index(x, y):
+    """Calculate and return the door index based on the x and y position."""
     door_index = (y * DOORS_HORIZ) + x
 
     return door_index
 
 
 def update_door_selection(x, y, movement):
+    """
+    Update the selected door in the form (x,y) and return a tuple with
+    that new position.
+
+    Arguments:
+    x -- x coordinate of currently selected door
+    y -- y coordinate of currently selected door
+    movement - movement direction as it occurs in the value property of the
+        pygame.JOYHATMOTION event
+    """
     x = x + movement[0]
     # Y axis is inverted with respect to our coordinate system
     y = y - movement[1]
@@ -291,6 +405,7 @@ def update_door_selection(x, y, movement):
 
 
 def read_activities(file_name):
+    """Read activities from file (one per line). Return list of activities."""
     activities = []
 
     with open(file_name, 'r') as activity_file:
@@ -301,6 +416,14 @@ def read_activities(file_name):
 
 
 def build_door_list(activities, doors_hidden=True):
+    """Build list of Door objects for use throughout the program.
+
+    Arguments:
+    activities -- list of activities that can be behind doors (newlines are
+        represented by backticks: `)
+    doors_hidden -- boolean that determines if the doors start off hidden
+        (i.e., not displayed when calling Door.draw())
+    """
     doors = []
 
     door_font = pygame.font.Font('freesansbold.ttf', DOOR_FONT_SIZE)
@@ -324,8 +447,15 @@ def build_door_list(activities, doors_hidden=True):
     return doors
 
 
-# TODO: Evaluate moving pygame event loop outside of state machine loop
 def main():
+    """
+    Main loop for activity board.
+
+    This is primarily a finite state machine using the states defined in
+    the State class.
+
+    TODO: Evaluate moving pygame event loop outside of state machine loop.
+    """
     debug = False
     debug2 = False
 
@@ -336,6 +466,7 @@ def main():
             debug = True
             debug2 = True
 
+    # Small buffer size to prevent delays when playing sounds
     pygame.mixer.init(buffer=512)
     pygame.init()
 
@@ -381,7 +512,10 @@ def main():
 
             start_sound.play()
 
+            # Flag indicating if all doors have been revealed (i.e., endgame)
             all_revealed = False
+
+            # Flag indicating if pygame display needs to be updated
             update_needed = True
 
             state = State.STARTING
@@ -389,6 +523,7 @@ def main():
             time.sleep(DOOR_REVEAL_DELAY)
 
             if show_list:
+                # Loop until show_list is empty, i.e., all doors displayed
                 for d in doors:
                     d.draw(screen.surface)
 
@@ -454,6 +589,9 @@ def main():
 
                         doors[selected_door].is_selected = False
 
+                        # TODO: Simplfy this based on the fact that
+                        # selected_door and (sel_x, sel_y) are functionally
+                        # identical.
                         (sel_x, sel_y) = update_door_selection(
                                 sel_x, sel_y, event.value)
                         selected_door = get_door_index(sel_x, sel_y)
@@ -461,6 +599,8 @@ def main():
                         doors[selected_door].is_selected = True
 
                         if selected_door != prev_selected:
+                            # Don't play move sound if player has tried to
+                            # move off the side of the screen.
                             move_sound = random.choice(move_sounds)
                             move_sound.play()
 
