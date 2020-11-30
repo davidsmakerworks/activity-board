@@ -32,4 +32,4 @@ Edit the file **activities.txt** with your desired activity choices. Use a back 
 ## Debugging
 - Debug mode can be activated by passing the command line argument **debug**
 - Extra debugging can be activated by passing the command line argument **debug2**
-- No dashes or slashes are used before the argument. Example: `python3 activity-board.py debug`
+- No dashes or slashes are used before the argument. Example: `python3 activityboard.py debug`
