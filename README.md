@@ -4,8 +4,6 @@
  This is a program designed for the Raspberry Pi that makes it fun  to select a random activity for a class or other group.
 
  Main code released under MIT License.
- 
- Sound effects created by Little Robot Sound Factory (www.littlerobotsoundfactory.com) and licensed under Creative Commons (https://creativecommons.org/licenses/by/3.0/)
 
 ## Requirements
 - Python 3.6 or later
