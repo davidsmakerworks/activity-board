@@ -20,11 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Sound effects created by Little Robot Sound Factory
-# (www.littlerobotsoundfactory.com)
-# and licensed under Creative Commons
-# (creativecommons.org/licenses/by/3.0/)
-
 """
 Activity Selection Board
 
@@ -483,12 +478,12 @@ def main():
     move_sounds = []
 
     for i in range(1,5): # i.e., integers 1 to 4 due to exclusive stop value
-        move_sounds.append(pygame.mixer.Sound(f'move{i}.wav'))
+        move_sounds.append(pygame.mixer.Sound(f'sounds/move{i}.wav'))
 
-    open_sound = pygame.mixer.Sound('opendoor.wav')
-    oops_sound = pygame.mixer.Sound('oops.wav')
-    start_sound = pygame.mixer.Sound('start.wav')
-    reveal_all_sound = pygame.mixer.Sound('revealall.wav')
+    open_sound = pygame.mixer.Sound('sounds/opendoor.wav')
+    oops_sound = pygame.mixer.Sound('sounds/oops.wav')
+    start_sound = pygame.mixer.Sound('sounds/start.wav')
+    reveal_all_sound = pygame.mixer.Sound('sounds/revealall.wav')
 
     screen = Screen(SCREEN_WIDTH, SCREEN_HEIGHT)
 
