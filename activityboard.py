@@ -105,6 +105,121 @@ class State(Enum):
     REVEAL_ALL = 5
     SHUTDOWN = 6
 
+class ActivityBoard:
+    """
+    Class representing the entire activity board.
+
+    Normally will be used to render onyo a PyGame display surface but
+    can render onto any PyGame Surface obect
+    """
+
+    @property
+    def num_doors(self):
+        return self.doors_horiz * self.doors_vert
+
+    @property
+    def door_width(self):
+        return self.surface.get_width() // self._doors_horiz
+
+    @property
+    def door_height(self):
+        return self.surface.get_height() // self._doors_vert
+
+
+    @property
+    def screen_x(self):
+        """
+        Calculate and return the screen X coordinate (in pixels) of the door.
+        """
+        return (self.index % DOORS_HORIZ) * DOOR_WIDTH
+
+
+    @property
+    def screen_y(self):
+        """
+        Calculate and return the screen Y coordinate (in pixels) of the door.
+        """
+        return (self.index // DOORS_HORIZ) * DOOR_HEIGHT
+
+    def __init__(
+            self, surface, doors_horiz, doors_vert, activities=None):
+
+        if surface.get_width() % doors_horiz != 0:
+            raise RuntimeError('surface width must be an integer '
+                    'multiple of doors_horiz')
+
+        if surface.get_height() % doors_vert != 0:
+            raise RuntimeError('surface height must be an integer '
+                    'multiple of doors_vert')
+
+        self.surface = surface
+
+        self._doors_horiz = doors_horiz
+        self._doors_vert = doors_vert
+
+class TextRender:
+    """
+    Class representing a text object that can be rendered as a surface.
+    """
+
+
+    def __init__(self, text, font, line_spacing, text_color):
+        """
+        Create and return a pygame Surface object containing the specified
+        text.
+
+        Arguments:
+        text -- text string to be rendered with newlines repersented as
+            backticks (`)
+        font -- pygame Font object to use for rendering text
+        line_spacing -- space between lines in pixels
+        text_color -- pygame Color object representing text color if the
+            default is not used
+
+        TODO: Implement word wrap.
+        """
+        self.text = text
+        self.font = font
+        self.line_spacing = line_spacing
+        self.text_color = text_color
+        
+
+    def render_surface(self):
+        text_lines = self.text.split('`')
+
+        text_surfaces = []
+
+        for line in text_lines:
+            text_surfaces.append(self.font.render(line, True, self.text_color))
+
+        total_height = 0
+        max_width = 0
+
+        for ts in text_surfaces:
+            size = ts.get_rect()
+
+            total_height += size.height
+
+            if size.width > max_width:
+                max_width = size.width
+
+        total_height += (len(text_surfaces) - 1) * self.line_spacing
+
+        text_surface = pygame.Surface((max_width, total_height))
+
+        y = 0
+
+        for ts in text_surfaces:
+            line_rect = ts.get_rect()
+
+            line_rect.center = (max_width // 2, line_rect.height // 2)
+
+            text_surface.blit(ts, ((max_width - line_rect.width) // 2, y))
+
+            y = y + line_rect.height + self.line_spacing
+
+        return text_surface
+
 
 class Screen:
     """
@@ -141,20 +256,7 @@ class Door:
     is_hidden -- boolean representing if door is hidden (i.e., not rendered
         when calling draw(); used for animated startup routine )
     """
-    @property
-    def screen_x(self):
-        """
-        Calculate and return the screen X coordinate (in pixels) of the door.
-        """
-        return (self.index % DOORS_HORIZ) * DOOR_WIDTH
-
-
-    @property
-    def screen_y(self):
-        """
-        Calculate and return the screen Y coordinate (in pixels) of the door.
-        """
-        return (self.index // DOORS_HORIZ) * DOOR_HEIGHT
+    
 
 
     def __init__(
@@ -181,27 +283,27 @@ class Door:
         TODO: Remove magic numbers related to ellipse size
         and selection rectangle
         """
-        surf = pygame.Surface((DOOR_WIDTH, DOOR_HEIGHT))
+        surf = pygame.Surface((self.width, self.height))
 
         if self.is_hidden:
             # Door is hidden - render as blank box
-            surf.fill(SCREEN_BGCOLOR)
+            surf.fill(self.bg_color)
         elif self.is_open and not self.is_revealed:
             # If door has been opened and we are not in the endgame reveal,
             # render door as an X
             if self.is_selected:
-                surf.fill(DOOR_SELCOLOR)
+                surf.fill(self.sel_color)
             else:
-                surf.fill(SCREEN_BGCOLOR)
+                surf.fill(self.bg_color)
 
-            surf.fill(SCREEN_BGCOLOR, Rect(20, 20, 440, 320))
+            surf.fill(self.bg_color, Rect(20, 20, 440, 320))
 
             pygame.draw.line(
                     surf, DOOR_OPENCOLOR, (20, 40),
-                    (DOOR_WIDTH - 20, DOOR_HEIGHT - 40), 40)
+                    (self.width - 20, self.height - 40), 40)
             pygame.draw.line(
-                    surf, DOOR_OPENCOLOR, (20, DOOR_HEIGHT - 40),
-                    (DOOR_WIDTH - 20, 40), 40)
+                    surf, self.open_color, (20, self.height - 40),
+                    (self.width - 20, 40), 40)
         elif self.is_revealed:
             # Endgame reveal - render with standard text color if the door
             # was opened during the game, otherwise render in a distinctive
@@ -295,21 +397,6 @@ class Door:
             y = y + line_rect.height + line_spacing
 
         return text_surface
-
-
-    def draw(self, dest_surface):
-        """
-        Draws the door on the specified surface.
-
-        Position of door is calculated based on door index.
-
-        Arguments:
-        dest_surface -- the pygame Surface object on which to draw the door
-            which is assumed to be 1920x1080.
-        """
-        dest_surface.blit(
-                self._get_door_surface(),
-                (self.screen_x, self.screen_y))
 
 
     def animate_open(self, dest_surface):
