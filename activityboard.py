@@ -637,6 +637,7 @@ def main():
             pygame.display.update()
             update_needed = False
 
+    # Should never get here
     pygame.quit()
 
 if __name__ == '__main__':
