@@ -25,29 +25,26 @@ Activity Selection Board
 
 A fun way to select random activities.
 
-This is currently hard coded to work only with a 1920x1080 screen and a 4x3
-arrangement of doors. A USB joystick is required.
+A PyGame-compatible joystick is required.
 
-Command-line parameters:
-debug -- print debugging information about all JOYBUTTONDOWN and JOYHATMOTION
-    events
-debug2 -- print debugging information about all pygame events
+Config file is specified on command line or defaults 
+to config.json if not specified
 
 For full documentation, see github.com/davidsmakerworks/activity-board
 
-TODO: Move configuration options to a configuration file.
-
-TODO: Generalize size and resolution of door grid.
-
 TODO: Implement alternative control schemes.
+
+TODO: Make certain sounds a property of the door for increased variation
 """
 
 
+import json
 import random
 import sys
 import time
 
 from enum import Enum, unique
+from typing import Text
 
 import pygame
 import buttons
@@ -55,32 +52,9 @@ import buttons
 from pygame.locals import *
 
 
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
-
-DOOR_WIDTH = 480
-DOOR_HEIGHT = 360
-
-DOOR_FONT_SIZE = 260
-ACTIVITY_SMALL_FONT_SIZE = 65
-ACTIVITY_FULL_FONT_SIZE = 240
-
-DOORS_HORIZ = 4
-DOORS_VERT = 3
-
 DOOR_OPEN_DELAY = 0.02
 DOOR_REVEAL_DELAY = 0.075
 
-SCREEN_BGCOLOR = Color('black')
-
-DOOR_BGCOLOR = Color('red')
-DOOR_OVALCOLOR = Color('yellow')
-DOOR_NUMCOLOR = Color('red')
-DOOR_SELCOLOR = Color('orange')
-DOOR_OPENCOLOR = Color('red')
-
-TEXT_COLOR = Color('white')
-REVEAL_COLOR = Color('gray')
 
 @unique
 class State(Enum):
@@ -105,65 +79,13 @@ class State(Enum):
     REVEAL_ALL = 5
     SHUTDOWN = 6
 
-class ActivityBoard:
-    """
-    Class representing the entire activity board.
 
-    Normally will be used to render onyo a PyGame display surface but
-    can render onto any PyGame Surface obect
-    """
-
-    @property
-    def num_doors(self):
-        return self.doors_horiz * self.doors_vert
-
-    @property
-    def door_width(self):
-        return self.surface.get_width() // self._doors_horiz
-
-    @property
-    def door_height(self):
-        return self.surface.get_height() // self._doors_vert
-
-
-    @property
-    def screen_x(self):
-        """
-        Calculate and return the screen X coordinate (in pixels) of the door.
-        """
-        return (self.index % DOORS_HORIZ) * DOOR_WIDTH
-
-
-    @property
-    def screen_y(self):
-        """
-        Calculate and return the screen Y coordinate (in pixels) of the door.
-        """
-        return (self.index // DOORS_HORIZ) * DOOR_HEIGHT
-
-    def __init__(
-            self, surface, doors_horiz, doors_vert, activities=None):
-
-        if surface.get_width() % doors_horiz != 0:
-            raise RuntimeError('surface width must be an integer '
-                    'multiple of doors_horiz')
-
-        if surface.get_height() % doors_vert != 0:
-            raise RuntimeError('surface height must be an integer '
-                    'multiple of doors_vert')
-
-        self.surface = surface
-
-        self._doors_horiz = doors_horiz
-        self._doors_vert = doors_vert
-
-class TextRender:
+class TextRenderer:
     """
     Class representing a text object that can be rendered as a surface.
     """
 
-
-    def __init__(self, text, font, line_spacing, text_color):
+    def __init__(self, font, line_spacing, text_color):
         """
         Create and return a pygame Surface object containing the specified
         text.
@@ -178,14 +100,13 @@ class TextRender:
 
         TODO: Implement word wrap.
         """
-        self.text = text
         self.font = font
         self.line_spacing = line_spacing
         self.text_color = text_color
         
 
-    def render_surface(self):
-        text_lines = self.text.split('`')
+    def render_surface(self, text):
+        text_lines = text.split('`')
 
         text_surfaces = []
 
@@ -221,18 +142,49 @@ class TextRender:
         return text_surface
 
 
-class Screen:
+class DoorProperties:
     """
-    Class representing the pyhsical screen where the board is displayed.
+    Class to contain configurable properties of a Door object.
 
-    Initializes the pygame display and gets the corresponding surface.
+    All color-related properties are PyGame Color objects.
+
+    All font-related properties are PyGame Font objects.
+
+    Properties:
+    bg_color -- background color of the underlying activity board surface
+    door_color -- overall color of the door surface
+    ellipse_color -- color of the ellipse surrounding the door number
+    number_color -- color of the door number
+    opened_color -- color of the X shown when door has been opened
+    selection_color -- color of the selection box around selected door
+    activity_color -- color of the acivity text behind the door
+    unused_color -- color of activity text when unused activity
+            is revealed in endgame
+    number_font -- font object used to render the door number
+    border_size -- size of selection border in pixels
+    ellipse_margin -- margin of ellipse in pixels from edge of door surface
     """
-    def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT):
-        self.width = width
-        self.height = height
+    def __init__(
+            self, bg_color, door_color, ellipse_color, number_color,
+            cross_color, selection_color, activity_color,
+            unused_color, activity_font, line_spacing, number_font,
+            border_size, ellipse_margin, cross_width, cross_offset):
+            self.bg_color = bg_color
+            self.door_color = door_color
+            self.ellipse_color = ellipse_color
+            self.number_color = number_color
+            self.cross_color = cross_color
+            self.selection_color = selection_color
+            self.activity_color = activity_color
+            self.unused_color = unused_color
+            self.activity_font = activity_font
+            self.line_spacing = line_spacing
+            self.number_font = number_font
+            self.border_size = border_size
+            self.ellipse_margin = ellipse_margin
+            self.cross_width = cross_width
+            self.cross_offset = cross_offset
 
-        self.surface = pygame.display.set_mode(
-                (self.width, self.height), flags=FULLSCREEN)
 
 class Door:
     """
@@ -240,12 +192,8 @@ class Door:
 
     Properties:
     index -- zero-based index of the door (i.e., index 0 = door 1, etc.)
-    number_font -- pygame Font object used to render the door number
-    activity_font_small -- pygame Font object used to render the activity
-        text while the door is opening
-    activity_font_full -- pygame Font object used to render the activity
-        text when displaying on full screen
     activity -- text of the activity (backticks [`] represent newlines)
+    props -- DoorProperties object representing configurable door properties
     is_selected -- boolean representing whether the door is currently
         selected in the interface (i.e., should be drawn with a box around
         the door)
@@ -254,201 +202,431 @@ class Door:
     is_revealed -- boolean indicating that the door should be revealed
         (i.e., endgame display showing what was behind all doors)
     is_hidden -- boolean representing if door is hidden (i.e., not rendered
-        when calling draw(); used for animated startup routine )
-    """
-    
+        when calling draw(); used for animated startup routine)
 
+    pct_open -- integer percentage of door that is currently displayed -
+        used for door-opening animation routine
+    """
 
     def __init__(
-            self, index=None, number_font=None, activity_small_font=None,
-            activity_full_font=None, activity=None, is_selected=False,
-            is_open=False, is_revealed=False, is_hidden=False):
+            self, index, height, width, activity, props,
+            is_selected=False, is_open=False, is_revealed=False,
+            is_hidden=False):
         """Initialize all object properties as shown in class documentation."""
         self.index = index
-        self.number_font = number_font
-        self.activity_small_font = activity_small_font
-        self.activity_full_font = activity_full_font
+        self.height = height
+        self.width = width
         self.activity = activity
+        self.props = props
         self.is_selected = is_selected
         self.is_open = is_open
         self.is_revealed = is_revealed
         self.is_hidden = is_hidden
 
+        self.pct_open = 0
 
-    def _get_door_surface(self):
+    def _draw_cross(self, surf):
+        """
+        Draws a cross (X) on the door surface to show that the door has
+        already been opened.
+        """
+        pygame.draw.line(
+                    surf,
+                    self.props.cross_color,
+                    (self.props.cross_offset, self.props.cross_offset * 2),
+                    (self.width - self.props.cross_offset,
+                            self.height - self.props.cross_offset * 2),
+                    self.props.cross_width)
+        
+        pygame.draw.line(
+                surf,
+                self.props.cross_color,
+                (self.props.cross_offset,
+                        self.height - self.props.cross_offset * 2),
+                (self.width - self.props.cross_offset,
+                        self.props.cross_offset * 2),
+                self.props.cross_width)
+
+    def get_door_surface(self):
         """
         Build and return a pygame Surface object representing the door in
         its current state based on the Door object properties.
 
-        TODO: Remove magic numbers related to ellipse size
-        and selection rectangle
+        TODO: Move some drawing code to separate methods to improve readability.
         """
         surf = pygame.Surface((self.width, self.height))
 
+        interior_rect = pygame.Rect(
+                self.props.border_size,
+                self.props.border_size, 
+                self.width - self.props.border_size * 2, 
+                self.height - self.props.border_size * 2)
+        
+        activity_renderer = TextRenderer(
+                    font=self.props.activity_font,
+                    line_spacing=self.props.line_spacing,
+                    text_color=self.props.activity_color)
+
         if self.is_hidden:
             # Door is hidden - render as blank box
-            surf.fill(self.bg_color)
+            surf.fill(self.props.bg_color)
         elif self.is_open and not self.is_revealed:
             # If door has been opened and we are not in the endgame reveal,
             # render door as an X
             if self.is_selected:
-                surf.fill(self.sel_color)
+                surf.fill(self.props.selection_color)
             else:
-                surf.fill(self.bg_color)
+                surf.fill(self.props.bg_color)
 
-            surf.fill(self.bg_color, Rect(20, 20, 440, 320))
+            surf.fill(self.props.bg_color, interior_rect)
 
-            pygame.draw.line(
-                    surf, DOOR_OPENCOLOR, (20, 40),
-                    (self.width - 20, self.height - 40), 40)
-            pygame.draw.line(
-                    surf, self.open_color, (20, self.height - 40),
-                    (self.width - 20, 40), 40)
+            self._draw_cross(surf)       
         elif self.is_revealed:
             # Endgame reveal - render with standard text color if the door
             # was opened during the game, otherwise render in a distinctive
-            # color to show that the door was not opened during the game.
-            text_color = TEXT_COLOR if self.is_open else REVEAL_COLOR
+            # color to show that the door was not opened during the game.        
+            activity_surface = activity_renderer.render_surface(self.activity)
 
-            activity_small_surface = self._create_text_surface(
-                    self.activity, self.activity_small_font, 8,
-                    text_color=text_color)
+            activity_rect = activity_surface.get_rect()
 
-            small_rect = activity_small_surface.get_rect()
-
-            surf.fill(SCREEN_BGCOLOR)
+            surf.fill(self.props.bg_color)
             surf.blit(
-                    activity_small_surface,
-                    ((DOOR_WIDTH // 2) - (small_rect.width // 2),
-                    (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
+                    activity_surface,
+                    ((self.width // 2) - (activity_rect.width // 2),
+                    (self.height // 2) - (activity_rect.height // 2)))
         else:
             if self.is_selected:
                 # If the door is currently selected, render a box around the
                 # door to indicate this.
-                surf.fill(DOOR_SELCOLOR)
+                surf.fill(self.props.selection_color)
             else:
-                surf.fill(SCREEN_BGCOLOR)
+                surf.fill(self.props.bg_color)
 
-            surf.fill(DOOR_BGCOLOR, Rect(20, 20, 440, 320))
+            surf.fill(self.props.door_color, interior_rect)
 
-            pygame.draw.ellipse(surf, DOOR_OVALCOLOR, Rect(40, 40, 400, 280))
+            ellipse_rect = pygame.Rect(
+                    self.props.ellipse_margin,
+                    self.props.ellipse_margin,
+                    self.width - self.props.ellipse_margin * 2,
+                    self.height - self.props.ellipse_margin * 2)
 
-            number_surface = self.number_font.render(
-                    str(self.index + 1), True, DOOR_NUMCOLOR)
+            pygame.draw.ellipse(
+                    surf, self.props.ellipse_color, ellipse_rect)
+
+            number_surface = self.props.number_font.render(
+                    str(self.index + 1), True, self.props.number_color)
             number_rect = number_surface.get_rect()
 
             surf.blit(
                     number_surface,
-                    ((DOOR_WIDTH // 2) - (number_rect.width // 2),
-                    (DOOR_HEIGHT // 2) - (number_rect.height // 2) + 10))
+                    ((self.width // 2) - (number_rect.width // 2),
+                    (self.height // 2) - (number_rect.height // 2) + 10))
+            
+            if self.pct_open > 0:
+                activity_small_surface = activity_renderer.render_surface(
+                        self.activity)
+
+                small_rect = activity_small_surface.get_rect()
+
+                open_width = int(self.width * (self.pct_open / 100))
+                open_height = int(self.height * (self.pct_open / 100))
+
+                open_surface = pygame.Surface((self.width, self.height))
+                
+                open_surface.fill(self.props.bg_color)
+                
+                open_surface.blit(
+                        activity_small_surface,
+                        ((self.width // 2) - (small_rect.width // 2),
+                        (self.height // 2) - (small_rect.height // 2)))
+
+                x = (self.width - open_width) // 2
+                y = (self.height - open_height) // 2
+
+                open_rect = Rect(x, y, open_width, open_height)
+
+                surf.blit(open_surface, (x, y), open_rect)
 
         return surf
 
 
-    def _create_text_surface(self, text, font, line_spacing, text_color=None):
+class ActivityBoard:
+    """
+    Class representing the entire activity board.
+
+    Normally will be used to render onyo a PyGame display surface but
+    can render onto any PyGame Surface obect
+    """
+    @property
+    def num_doors(self):
+        return self._doors_horiz * self._doors_vert
+
+
+    @property
+    def door_width(self):
+        return self.surface.get_width() // self._doors_horiz
+
+
+    @property
+    def door_height(self):
+        return self.surface.get_height() // self._doors_vert
+
+
+    def door_x_coord(self, index):
         """
-        Create and return a pygame Surface object containing the specified
-        text.
+        Calculate and return the screen X coordinate (in pixels) of the door.
+        """
+        return (index % self._doors_horiz) * self.door_width
+
+
+    def door_y_coord(self, index):
+        """
+        Calculate and return the screen Y coordinate (in pixels) of the door.
+        """
+        return (index // self._doors_horiz) * self.door_height
+
+
+    def _read_activities(self, file_name):
+        """Read activities from file (one per line)."""
+        self.activities = []
+
+        with open(file_name, 'r') as activity_file:
+            for line in activity_file:
+                self.activities.append(line.strip())
+
+
+    def _build_sound_list(self, sound_files):
+        """
+        Builds a list of PyGame Sound objects given a list of sound file names.
+        """
+        sound_list = []
+
+        for f in sound_files:
+            sound_list.append(pygame.mixer.Sound(f))
+        
+        return sound_list
+
+
+    def _build_door_list(self, activities, doors_hidden=False):
+        """
+        Build list of Door objects for use on the activity board.
 
         Arguments:
-        text -- text string to be rendered with newlines repersented as
-            backticks (`)
-        font -- pygame Font object to use for rendering text
-        line_spacing -- space between lines in pixels
-        text_color -- pygame Color object representing text color if the
-            default is not used
-
-        TODO: Implement word wrap.
+        activities -- list of activities that can be behind doors (newlines are
+            represented by backticks: `)
+        doors_hidden -- boolean that determines if the doors start off hidden
+            (i.e., not displayed when calling Door.draw())
         """
-        if not text_color:
-            text_color = TEXT_COLOR
+        self.doors = []
 
-        text_lines = text.split('`')
+        door_colors = self.config['door']['color']
 
-        text_surfaces = []
+        for i in range(self.num_doors):
+            activity_font = pygame.font.Font(
+                self.config['door']['font']['activity']['file'],
+                self.config['door']['font']['activity']['size'])
 
-        for line in text_lines:
-            text_surfaces.append(font.render(line, True, text_color))
+            number_font = pygame.font.Font(
+                self.config['door']['font']['number']['file'],
+                self.config['door']['font']['number']['size'])
 
-        total_height = 0
-        max_width = 0
+            # Individual props object for each door to allow for later
+            # customization
+            props = DoorProperties(
+                bg_color=pygame.Color(self.config['board']['bg_color']),
+                door_color=pygame.Color(door_colors['door']),
+                ellipse_color=pygame.Color(door_colors['ellipse']),
+                number_color=pygame.Color(door_colors['number']),
+                cross_color=pygame.Color(door_colors['cross']),
+                selection_color=pygame.Color(door_colors['selection']),
+                activity_color=pygame.Color(door_colors['activity']),
+                unused_color=pygame.Color(door_colors['unused']),
+                activity_font=activity_font,
+                line_spacing=self.config['door']['line_spacing'],
+                number_font=number_font,
+                border_size=self.config['door']['border_size'],
+                ellipse_margin=self.config['door']['ellipse_margin'],
+                cross_width=self.config['door']['cross_width'],
+                cross_offset=self.config['door']['cross_offset'])
 
-        for ts in text_surfaces:
-            size = ts.get_rect()
+            activity = random.choice(activities)
+            activities.remove(activity)
 
-            total_height += size.height
-
-            if size.width > max_width:
-                max_width = size.width
-
-        total_height += (len(text_surfaces) - 1) * line_spacing
-
-        text_surface = pygame.Surface((max_width, total_height))
-
-        y = 0
-
-        for ts in text_surfaces:
-            line_rect = ts.get_rect()
-
-            line_rect.center = (max_width // 2, line_rect.height // 2)
-
-            text_surface.blit(ts, ((max_width - line_rect.width) // 2, y))
-
-            y = y + line_rect.height + line_spacing
-
-        return text_surface
+            self.doors.append(Door(
+                    index=i,
+                    height=self.door_height,
+                    width=self.door_width,
+                    activity=activity,
+                    props=props,
+                    is_hidden=doors_hidden))
 
 
-    def animate_open(self, dest_surface):
+    def _play_random_sound(self, sound_list):
         """
-        Performs animation of door opening and displays activity in
-        full screen after animation is complete.
+        Plays one random sound from a list of PyGame Sound objects.
 
-        Arguments:
-        dest_surface -- pygame Surface on which to render the door animation
-            and full-screen activity
+        This should be used for all sound playback to allow for the possibility
+        of adding multiple sounds.
 
-        TODO: Make this part of _get_door_surface and make revealed
-            portion a property of the class
+        For effects that should always play the same sound, pass in a 
+        one-item list.
         """
-        activity_small_surface = self._create_text_surface(
-                self.activity, self.activity_small_font, 8)
-        activity_full_surface = self._create_text_surface(
-                self.activity, self.activity_full_font, 16)
+        sound = random.choice(sound_list)
 
-        small_rect = activity_small_surface.get_rect()
+        sound.play()
 
-        door_surface = pygame.Surface((DOOR_WIDTH, DOOR_HEIGHT))
-        door_surface.fill(SCREEN_BGCOLOR)
-        door_surface.blit(
-                activity_small_surface,
-                ((DOOR_WIDTH // 2) - (small_rect.width // 2),
-                (DOOR_HEIGHT // 2) - (small_rect.height // 2)))
+    
+    def _draw_door(self, door):
+        """
+        Draws door onto activity board surface.
+        """
+        door_surface = door.get_door_surface()
 
-        for revealed_width in range(8, DOOR_WIDTH + 1, 8):
-            offset = revealed_width // 2
-            left = (self.screen_x + (DOOR_WIDTH // 2)) - offset
-            area_rect = Rect(
-                    (DOOR_WIDTH // 2 - offset), 0,
-                    revealed_width, DOOR_HEIGHT)
+        self.surface.blit(
+                door_surface,
+                (self.door_x_coord(door.index), self.door_y_coord(door.index)))
 
-            dest_surface.blit(door_surface, (left, self.screen_y), area_rect)
+    
+    def _draw_all_doors(self):
+        """
+        Draws all doors onto activity board surface.
+
+        For best performance, keep track of which doors have been updated
+        and call _draw_door() for only those doors.
+        """
+        for d in self.doors:
+            self._draw_door(d)
+
+    
+    def _show_activity(self, door):
+        """
+        Shows the activity related to a particular door in
+        a large font on the whole activity board surface.
+        """
+        activity_surface = self.activity_renderer.render_surface(door.activity)
+
+        self.surface.fill(self.bg_color)
+
+        activity_rect = activity_surface.get_rect()
+
+        self.surface.blit(
+                activity_surface,
+                ((self.width // 2) - (activity_rect.width // 2),
+                (self.height // 2) - (activity_rect.height // 2)))
+
+
+    def __init__(self, surface, config, start_hidden=False):
+
+        doors_horiz = config['board']['doors_horiz']
+        doors_vert = config['board']['doors_vert']
+
+        if surface.get_width() % doors_horiz != 0:
+            raise RuntimeError('surface width must be an integer '
+                    'multiple of doors_horiz')
+
+        if surface.get_height() % doors_vert != 0:
+            raise RuntimeError('surface height must be an integer '
+                    'multiple of doors_vert')
+
+        self.surface = surface
+        self.config = config
+
+        self.bg_color = pygame.Color(config['board']['bg_color'])
+
+        self.width = surface.get_width()
+        self.height = surface.get_height()
+
+        activity_font = pygame.font.Font(
+            self.config['board']['font']['activity']['file'],
+            self.config['board']['font']['activity']['size'])
+
+        line_spacing = self.config['board']['line_spacing']
+
+        activity_color = pygame.Color(
+                self.config['board']['color']['activity'])
+
+        self.activity_renderer = TextRenderer(
+                activity_font,
+                line_spacing,
+                activity_color)
+
+        self._doors_horiz = doors_horiz
+        self._doors_vert = doors_vert
+
+        self._read_activities(config['activity_file'])
+        self._build_door_list(self.activities, doors_hidden=start_hidden)
+
+        self.move_sounds = self._build_sound_list(
+                config['board']['sound']['move'])
+        self.open_sounds = self._build_sound_list(
+                config['board']['sound']['open'])
+        self.oops_sounds = self._build_sound_list(
+                config['board']['sound']['oops'])
+        self.start_sounds = self._build_sound_list(
+                config['board']['sound']['start'])
+        self.reveal_all_sounds = self._build_sound_list(
+                config['board']['sound']['reveal_all'])
+
+    def run(self):
+        #self._play_random_sound(self.start_sounds)
+
+        r = random.randint(0, 10)
+
+        self.doors[r].is_selected = True
+        self.doors[r + 1].is_revealed = True
+
+        self._draw_all_doors()
+
+        pygame.display.update()
+
+        time.sleep(2)
+
+        for i in range(2, 102, 2):
+            self.doors[r].pct_open = i
+
+            print(i)
+
+            self._draw_door(self.doors[r])
 
             pygame.display.update()
 
-            time.sleep(DOOR_OPEN_DELAY)
+            time.sleep(0.02)
+
+        self._show_activity(self.doors[r + 1])
 
         pygame.display.update()
 
-        dest_surface.fill(SCREEN_BGCOLOR)
+        time.sleep(2)
 
-        full_rect = activity_full_surface.get_rect()
-        dest_surface.blit(
-                activity_full_surface,
-                ((SCREEN_WIDTH // 2) - (full_rect.width // 2),
-                (SCREEN_HEIGHT // 2) - (full_rect.height // 2)))
+        self.doors[r].is_open = True
+        self._draw_all_doors()
 
         pygame.display.update()
+
+        time.sleep(2)
+
+        return False
+
+
+class Screen:
+    """
+    Class representing the pyhsical screen where the board is displayed.
+
+    Initializes the pygame display and gets the corresponding surface.
+    """
+    def __init__(self, width, height, bg_color, fullscreen=False):
+        self.width = width
+        self.height = height
+
+        if fullscreen:
+            flags = FULLSCREEN
+        else:
+            flags = None
+
+        self.surface = pygame.display.set_mode(
+                (self.width, self.height), flags=flags)
+
+        self.surface.fill(bg_color)
 
 
 def get_door_index(x, y):
@@ -486,67 +664,24 @@ def update_door_selection(x, y, movement):
     return (x, y)
 
 
-def read_activities(file_name):
-    """Read activities from file (one per line). Return list of activities."""
-    activities = []
-
-    with open(file_name, 'r') as activity_file:
-        for line in activity_file:
-            activities.append(line.strip())
-
-    return activities
-
-
-def build_door_list(activities, doors_hidden=True):
-    """Build list of Door objects for use throughout the program.
-
-    Arguments:
-    activities -- list of activities that can be behind doors (newlines are
-        represented by backticks: `)
-    doors_hidden -- boolean that determines if the doors start off hidden
-        (i.e., not displayed when calling Door.draw())
-    """
-    doors = []
-
-    door_font = pygame.font.Font('freesansbold.ttf', DOOR_FONT_SIZE)
-    activity_small_font = pygame.font.Font(
-            'freesansbold.ttf', ACTIVITY_SMALL_FONT_SIZE)
-    activity_full_font = pygame.font.Font(
-            'freesansbold.ttf', ACTIVITY_FULL_FONT_SIZE)
-
-    for i in range(DOORS_HORIZ * DOORS_VERT):
-        activity = random.choice(activities)
-        activities.remove(activity)
-
-        doors.append(Door(
-                index=i,
-                number_font=door_font,
-                activity_small_font=activity_small_font,
-                activity_full_font=activity_full_font,
-                activity=activity,
-                is_hidden=doors_hidden))
-
-    return doors
-
-
 def main():
     """
     Main loop for activity board.
 
     This is primarily a finite state machine using the states defined in
     the State class.
-
-    TODO: Evaluate moving pygame event loop outside of state machine loop.
     """
-    debug = False
-    debug2 = False
 
     if len(sys.argv) > 1:
-        if sys.argv[1].lower() == 'debug':
-            debug = True
-        elif sys.argv[1].lower() == 'debug2':
-            debug = True
-            debug2 = True
+        config_file = sys.argv[1]
+    else:
+        config_file = 'config.json'
+
+    with open(config_file, 'r') as f:
+        config = json.load(f)
+
+    debug = config['debug']
+    debug2 = config['debug2']
 
     # Small buffer size to prevent delays when playing sounds
     pygame.mixer.init(buffer=512)
@@ -556,176 +691,185 @@ def main():
 
     pygame.mouse.set_visible(False)
 
-    if pygame.joystick.get_count():
-        js = pygame.joystick.Joystick(0)
-        js.init()
-    else:
-        raise RuntimeError('Joystick not found')
+    # if pygame.joystick.get_count():
+    #     js = pygame.joystick.Joystick(0)
+    #     js.init()
+    # else:
+    #     raise RuntimeError('Joystick not found')
 
-    move_sounds = []
 
-    for i in range(1,5): # i.e., integers 1 to 4 due to exclusive stop value
-        move_sounds.append(pygame.mixer.Sound(f'sounds/move{i}.wav'))
 
-    open_sound = pygame.mixer.Sound('sounds/opendoor.wav')
-    oops_sound = pygame.mixer.Sound('sounds/oops.wav')
-    start_sound = pygame.mixer.Sound('sounds/start.wav')
-    reveal_all_sound = pygame.mixer.Sound('sounds/revealall.wav')
+    screen = Screen(
+            width=config['display']['width'],
+            height=config['display']['height'],
+            bg_color=pygame.Color(config['board']['bg_color']),
+            fullscreen=config['display']['fullscreen'])
 
-    screen = Screen(SCREEN_WIDTH, SCREEN_HEIGHT)
+    screen_surface = screen.surface
+    play_again = True
 
-    state = State.START
+    while play_again:
+        board = ActivityBoard(
+            surface=screen_surface,
+            config=config,
+            start_hidden=False)
 
-    while True:
-        if state == State.START:
-            activities = read_activities('activities.txt')
+        play_again = board.run()
 
-            doors = build_door_list(activities)
-
-            doors[0].is_selected = True
-
-            sel_x = 0
-            sel_y = 0
-            selected_door = 0
-
-            # List of all door numbers to track which ones have been
-            # shown during startup animation
-            show_list = list(range(DOORS_HORIZ * DOORS_VERT))
-
-            start_sound.play()
-
-            # Flag indicating if all doors have been revealed (i.e., endgame)
-            all_revealed = False
-
-            # Flag indicating if pygame display needs to be updated
-            update_needed = True
-
-            state = State.STARTING
-        elif state == State.STARTING:
-            time.sleep(DOOR_REVEAL_DELAY)
-
-            if show_list:
-                # Loop until show_list is empty, i.e., all doors displayed
-                for d in doors:
-                    d.draw(screen.surface)
-
-                show_door = random.choice(show_list)
-                doors[show_door].is_hidden = False
-                show_list.remove(show_door)
-
-                update_needed = True
-            else:
-                state = State.DRAW
-        elif state == State.DRAW:
-            for d in doors:
-                d.draw(screen.surface)
-
-            update_needed = True
-
-            if all_revealed:
-                state = State.REVEAL_ALL
-            else:
-                state = State.SELECT
-        elif state == State.SELECT:
-            for event in pygame.event.get():
-                if debug2:
-                    print(f'Pygame event type {event.type}')
-                if event.type == JOYBUTTONDOWN:
-                    if debug:
-                        print(f'Joystick button {event.button} pressed')
-
-                    if event.button == buttons.BTN_A:
-                        if not doors[selected_door].is_open:
-                            open_sound.play()
-
-                            doors[selected_door].is_open = True
-                            doors[selected_door].animate_open(screen.surface)
-
-                            state = State.DISPLAY
-                        else:
-                            oops_sound.play()
-
-                        pygame.event.clear()
-                    elif event.button == buttons.BTN_Y:
-                        if js.get_button(buttons.BTN_X):
-                            reveal_all_sound.play()
-
-                            for d in doors:
-                                d.is_revealed = True
-
-                            all_revealed = True
-
-                            state = State.DRAW
-                    elif event.button == buttons.BTN_START:
-                        state = State.START
-                    elif event.button == buttons.BTN_BACK:
-                        if (js.get_button(buttons.BTN_RB)
-                                and js.get_button(buttons.BTN_LB)):
-                            state = State.SHUTDOWN
-                elif event.type == JOYHATMOTION:
-                    if debug:
-                        print(f'Joystick hat motion {event.value}')
-
-                    if event.value[0] or event.value[1]:
-                        prev_selected = selected_door
-
-                        doors[selected_door].is_selected = False
-
-                        # TODO: Simplfy this based on the fact that
-                        # selected_door and (sel_x, sel_y) are functionally
-                        # identical.
-                        (sel_x, sel_y) = update_door_selection(
-                                sel_x, sel_y, event.value)
-                        selected_door = get_door_index(sel_x, sel_y)
-
-                        doors[selected_door].is_selected = True
-
-                        if selected_door != prev_selected:
-                            # Don't play move sound if player has tried to
-                            # move off the side of the screen.
-                            move_sound = random.choice(move_sounds)
-                            move_sound.play()
-
-                        state = State.DRAW
-
-                        pygame.event.clear()
-                elif event.type == QUIT:
-                    state = State.SHUTDOWN
-        elif state == State.DISPLAY:
-            for event in pygame.event.get():
-                if event.type == JOYBUTTONDOWN:
-                    if event.button == buttons.BTN_B:
-                        screen.surface.fill(SCREEN_BGCOLOR)
-
-                        state = State.DRAW
-
-                        pygame.event.clear()
-                    elif event.button == buttons.BTN_BACK:
-                        if (js.get_button(buttons.BTN_RB)
-                                and js.get_button(buttons.BTN_LB)):
-                            state = State.SHUTDOWN
-        elif state == State.REVEAL_ALL:
-            for event in pygame.event.get():
-                if event.type == JOYBUTTONDOWN:
-                    if event.button == buttons.BTN_START:
-                        state = State.START
-                    elif event.button == buttons.BTN_BACK:
-                        if (js.get_button(buttons.BTN_RB)
-                                and js.get_button(buttons.BTN_LB)):
-                            state = State.SHUTDOWN
-        elif state == State.SHUTDOWN:
-            pygame.quit()
-            sys.exit()
-        else:
-            pygame.quit()
-            raise RuntimeError('Invalid state in main loop')
-
-        if update_needed:
-            pygame.display.update()
-            update_needed = False
-
-    # Should never get here
     pygame.quit()
+
+    # state = State.START
+
+    # while True:
+    #     if state == State.START:
+    #         activities = read_activities('activities.txt')
+
+    #         doors = build_door_list(activities)
+
+    #         doors[0].is_selected = True
+
+    #         sel_x = 0
+    #         sel_y = 0
+    #         selected_door = 0
+
+    #         # List of all door numbers to track which ones have been
+    #         # shown during startup animation
+    #         show_list = list(range(DOORS_HORIZ * DOORS_VERT))
+
+    #         start_sound.play()
+
+    #         # Flag indicating if all doors have been revealed (i.e., endgame)
+    #         all_revealed = False
+
+    #         # Flag indicating if pygame display needs to be updated
+    #         update_needed = True
+
+    #         state = State.STARTING
+    #     elif state == State.STARTING:
+    #         time.sleep(DOOR_REVEAL_DELAY)
+
+    #         if show_list:
+    #             # Loop until show_list is empty, i.e., all doors displayed
+    #             for d in doors:
+    #                 d.draw(screen.surface)
+
+    #             show_door = random.choice(show_list)
+    #             doors[show_door].is_hidden = False
+    #             show_list.remove(show_door)
+
+    #             update_needed = True
+    #         else:
+    #             state = State.DRAW
+    #     elif state == State.DRAW:
+    #         for d in doors:
+    #             d.draw(screen.surface)
+
+    #         update_needed = True
+
+    #         if all_revealed:
+    #             state = State.REVEAL_ALL
+    #         else:
+    #             state = State.SELECT
+    #     elif state == State.SELECT:
+    #         for event in pygame.event.get():
+    #             if debug2:
+    #                 print(f'Pygame event type {event.type}')
+    #             if event.type == JOYBUTTONDOWN:
+    #                 if debug:
+    #                     print(f'Joystick button {event.button} pressed')
+
+    #                 if event.button == buttons.BTN_A:
+    #                     if not doors[selected_door].is_open:
+    #                         open_sound.play()
+
+    #                         doors[selected_door].is_open = True
+    #                         doors[selected_door].animate_open(screen.surface)
+
+    #                         state = State.DISPLAY
+    #                     else:
+    #                         oops_sound.play()
+
+    #                     pygame.event.clear()
+    #                 elif event.button == buttons.BTN_Y:
+    #                     if js.get_button(buttons.BTN_X):
+    #                         reveal_all_sound.play()
+
+    #                         for d in doors:
+    #                             d.is_revealed = True
+
+    #                         all_revealed = True
+
+    #                         state = State.DRAW
+    #                 elif event.button == buttons.BTN_START:
+    #                     state = State.START
+    #                 elif event.button == buttons.BTN_BACK:
+    #                     if (js.get_button(buttons.BTN_RB)
+    #                             and js.get_button(buttons.BTN_LB)):
+    #                         state = State.SHUTDOWN
+    #             elif event.type == JOYHATMOTION:
+    #                 if debug:
+    #                     print(f'Joystick hat motion {event.value}')
+
+    #                 if event.value[0] or event.value[1]:
+    #                     prev_selected = selected_door
+
+    #                     doors[selected_door].is_selected = False
+
+    #                     # TODO: Simplfy this based on the fact that
+    #                     # selected_door and (sel_x, sel_y) are functionally
+    #                     # identical.
+    #                     (sel_x, sel_y) = update_door_selection(
+    #                             sel_x, sel_y, event.value)
+    #                     selected_door = get_door_index(sel_x, sel_y)
+
+    #                     doors[selected_door].is_selected = True
+
+    #                     if selected_door != prev_selected:
+    #                         # Don't play move sound if player has tried to
+    #                         # move off the side of the screen.
+    #                         move_sound = random.choice(move_sounds)
+    #                         move_sound.play()
+
+    #                     state = State.DRAW
+
+    #                     pygame.event.clear()
+    #             elif event.type == QUIT:
+    #                 state = State.SHUTDOWN
+    #     elif state == State.DISPLAY:
+    #         for event in pygame.event.get():
+    #             if event.type == JOYBUTTONDOWN:
+    #                 if event.button == buttons.BTN_B:
+    #                     screen.surface.fill(SCREEN_BGCOLOR)
+
+    #                     state = State.DRAW
+
+    #                     pygame.event.clear()
+    #                 elif event.button == buttons.BTN_BACK:
+    #                     if (js.get_button(buttons.BTN_RB)
+    #                             and js.get_button(buttons.BTN_LB)):
+    #                         state = State.SHUTDOWN
+    #     elif state == State.REVEAL_ALL:
+    #         for event in pygame.event.get():
+    #             if event.type == JOYBUTTONDOWN:
+    #                 if event.button == buttons.BTN_START:
+    #                     state = State.START
+    #                 elif event.button == buttons.BTN_BACK:
+    #                     if (js.get_button(buttons.BTN_RB)
+    #                             and js.get_button(buttons.BTN_LB)):
+    #                         state = State.SHUTDOWN
+    #     elif state == State.SHUTDOWN:
+    #         pygame.quit()
+    #         sys.exit()
+    #     else:
+    #         pygame.quit()
+    #         raise RuntimeError('Invalid state in main loop')
+
+    #     if update_needed:
+    #         pygame.display.update()
+    #         update_needed = False
+
+    # # Should never get here
+    # pygame.quit()
 
 if __name__ == '__main__':
     main()

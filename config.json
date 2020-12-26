@@ -1,0 +1,72 @@
+{
+    "display": {
+        "width": 1920,
+        "height": 1080,
+        "fullscreen": true
+    },
+    "board": {
+        "doors_horiz": 4,
+        "doors_vert": 3,
+        "bg_color": "black",
+        "color": {
+            "activity": "white"
+        },
+        "font": {
+            "activity" : {
+                "file": "freesansbold.ttf",
+                "size": 240
+            }
+        },
+        "sound": {
+            "move": [
+                "sounds/move1.wav",
+                "sounds/move2.wav",
+                "sounds/move3.wav",
+                "sounds/move4.wav"
+            ],
+            "open": [
+                "sounds/opendoor.wav"
+            ],
+            "oops": [
+                "sounds/oops.wav"
+            ],
+            "start": [
+                "sounds/start.wav"
+            ],
+            "reveal_all": [
+                "sounds/revealall.wav"
+            ]
+        },
+        "line_spacing": 16
+    },
+    "door": {     
+        "color": {
+            "door": "red",
+            "ellipse": "yellow",
+            "number": "red",
+            "cross": "red",
+            "selection": "orange",
+            "activity": "white",
+            "unused": "gray"
+        },
+        "font": {
+            "activity" : {
+                "file": "freesansbold.ttf",
+                "size": 65
+            },
+            "number": {
+                "file": "freesansbold.ttf",
+                "size": 260
+            }
+        },
+        "line_spacing": 8,
+        "border_size": 20,
+        "ellipse_margin": 40,
+        "cross_width": 40,
+        "cross_offset": 20
+
+    },
+    "activity_file": "activities.txt",
+    "debug": false,
+    "debug2": false
+}
