@@ -8,23 +8,29 @@
 ## Requirements
 - Python 3.6 or later
 - PyGame 1.9 or later
-- PyGame-compatible game controller
 
 ## Instructions
-Edit the file **activities.txt** with your desired activity choices. Use a back quote (`) to indicate a new line.
+Edit the file **activities.txt** (unless a different file is specified in configuration) with your desired activity choices. Use a back quote (`) to indicate a new line.
 
 Edit the configuraton file (**config.json** by default) to customize the activity board.
 
-### Joystick functions
+### Joystick controls
 - Move selection with **digital pad or POV hat**
 - Press **A** to open selected door
 - Press **B** to return to selection screen
 - Hold **X** then press **Y** to reveal all doors
 - Press **START** to shuffle and reset all doors
-- Press **BACK** to exit
+- Press **LB** and **RB** then press **BACK** to exit
+
+### Keyboard controls
+- Move selection with **arrow keys** or **WASD**
+- Press **ENTER** or **SPACE** to open selected door
+- Press **ESC** or **BACKSPACE** to return to selection screen
+- Hold **LEFT-SHIFT** then press **Z** to reveal all doors
+- Press **HOME** to shuffle and reset all doors
+- Hold **LEFT SHIFT** and **LEFT-CTRL** then press **Q** to exit
 
 ## Limitations/Possible Enhancements
-- Joystick is required - no keyboard support at this time
 - Time delays are optimized for Raspberry Pi 3 and might need to be changed for other versions
 
 ## Debugging (not yet implemented)
