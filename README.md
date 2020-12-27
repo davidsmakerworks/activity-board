@@ -7,7 +7,7 @@
 
 ## Requirements
 - Python 3.6 or later
-- PyGame 1.9 or later
+- PyGame 1.9.4post1 or later (PyGame 2 may not work on Raspberry Pi)
 
 ## Instructions
 Edit the file **activities.txt** (unless a different file is specified in configuration) with your desired activity choices. Use a back quote (`) to indicate a new line.
@@ -28,7 +28,7 @@ Edit the configuraton file (**config.json** by default) to customize the activit
 - Press **ESC** or **BACKSPACE** to return to selection screen
 - Hold **LEFT-SHIFT** then press **Z** to reveal all doors
 - Press **HOME** to shuffle and reset all doors
-- Hold **LEFT SHIFT** and **LEFT-CTRL** then press **Q** to exit
+- Hold **LEFT-SHIFT** and **LEFT-CTRL** then press **Q** to exit
 
 ## Limitations/Possible Enhancements
 - Time delays are optimized for Raspberry Pi 3 and might need to be changed for other versions

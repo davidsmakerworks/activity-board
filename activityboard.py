@@ -216,6 +216,7 @@ class Door:
         # Always assume that a new door starts fully closed
         self.pct_open = 0
 
+
     def _draw_cross(self, surf):
         """
         Draws a cross (X) on the door surface to show that the door has
@@ -237,6 +238,7 @@ class Door:
                 (self.width - self.props.cross_offset,
                         self.props.cross_offset * 2),
                 self.props.cross_width)
+
 
     def get_door_surface(self):
         """
@@ -683,6 +685,7 @@ class ActivityBoard:
 
         pygame.display.update()
 
+
     def _get_new_selection(self, door, action):
         """
         Return new door index based on originally selected door and 
@@ -825,6 +828,7 @@ class ActivityBoard:
 
             time.sleep(self._intro_step_time)
 
+
     def _animate_open(self, door):
         """
         Animates the opening of a Door object by repeatedly updating the door's
@@ -842,6 +846,7 @@ class ActivityBoard:
             self._draw_door(door)
 
             time.sleep(door.props.open_step_time)
+
 
     def _animate_open_all(self):
         """
@@ -876,6 +881,7 @@ class ActivityBoard:
             d.is_updated = True
 
         self._draw_updated_doors()
+
 
     def run(self):
         """
