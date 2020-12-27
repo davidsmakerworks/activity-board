@@ -765,7 +765,7 @@ class ActivityBoard:
                 return ActivityBoard.Action.RESTART
             elif event.button == buttons.BTN_BACK:
                 if (self._joystick.get_button(buttons.BTN_LB)
-                        and self._joystick.get_button(buttons.buttons.BTN_RB)):
+                        and self._joystick.get_button(buttons.BTN_RB)):
                     return ActivityBoard.Action.QUIT
         elif event.type == JOYHATMOTION:
             if event.value[0] and event.value[1]:
