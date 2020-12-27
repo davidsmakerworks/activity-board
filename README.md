@@ -8,11 +8,12 @@
 ## Requirements
 - Python 3.6 or later
 - PyGame 1.9 or later
-- USB game controller
-- 1920x1080 screen resolution
+- PyGame-compatible game controller
 
 ## Instructions
 Edit the file **activities.txt** with your desired activity choices. Use a back quote (`) to indicate a new line.
+
+Edit the configuraton file (**config.json** by default) to customize the activity board.
 
 ### Joystick functions
 - Move selection with **digital pad or POV hat**
@@ -20,14 +21,12 @@ Edit the file **activities.txt** with your desired activity choices. Use a back 
 - Press **B** to return to selection screen
 - Hold **X** then press **Y** to reveal all doors
 - Press **START** to shuffle and reset all doors
-- Hold **LB** and **RB** then press **BACK** to exit
+- Press **BACK** to exit
 
 ## Limitations/Possible Enhancements
-- Screen resolution must be exactly 1920x1080
 - Joystick is required - no keyboard support at this time
 - Time delays are optimized for Raspberry Pi 3 and might need to be changed for other versions
 
-## Debugging
-- Debug mode can be activated by passing the command line argument **debug**
-- Extra debugging can be activated by passing the command line argument **debug2**
-- No dashes or slashes are used before the argument. Example: `python3 activityboard.py debug`
+## Debugging (not yet implemented)
+- Debug mode can be activated by setting the **debug** option in the configuration file to **true**
+- Extra debugging can be activated by setting the **debug2** option in the configuration file to **true**
