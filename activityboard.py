@@ -644,7 +644,7 @@ class ActivityBoard:
         """
         for d in self._doors:
             if d.is_updated:
-                self._draw_door(d)
+                self._draw_door(d, update_display=False)
                 d.is_updated = False
 
         pygame.display.update()
@@ -947,7 +947,7 @@ class ActivityBoard:
                         
                         self._animate_open_all()
 
-                        self.state = ActivityBoard.State.ALL_REVEALED
+                        self._state = ActivityBoard.State.ALL_REVEALED
 
                         pygame.event.clear()
                     elif action in [
