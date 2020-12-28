@@ -318,7 +318,7 @@ class Door:
             surf.blit(
                     number_surface,
                     ((self.width // 2) - (number_rect.width // 2),
-                    (self.height // 2) - (number_rect.height // 2) + 10))
+                    (self.height // 2) - (number_rect.height // 2)))
 
             # If the door is partially "open", reveal a portion of the
             # activity text surface
@@ -864,7 +864,7 @@ class ActivityBoard:
 
         self._draw_updated_doors()
 
-        for i in range(10, 110, 10):
+        for i in range(4, 104, 4):
             for d in self._doors:
                 if not d.is_open:
                     d.pct_open = i
