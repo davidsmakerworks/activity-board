@@ -38,11 +38,11 @@ https://github.com/davidsmakerworks/activity-board
 import random
 import time
 
-from enum import Enum, unique
+from enum import Enum, unique, auto
 
 import pygame
 
-# Wildcard import used here basd on standard PyGame code style
+# Wildcard import used here based on standard PyGame code style
 from pygame.locals import *
 
 from button import Button
@@ -81,11 +81,11 @@ class ActivityBoard:
         ALL_REVEALED -- All doors revealed at end of game
         GAME_OVER -- Exiting game
         """
-        START = 0
-        SELECTING = 1
-        IN_PROGRESS = 2
-        ALL_REVEALED = 3
-        GAME_OVER = 4
+        START = auto()
+        SELECTING = auto()
+        IN_PROGRESS = auto()
+        ALL_REVEALED = auto()
+        GAME_OVER = auto()
 
     @unique
     class Action(Enum):
@@ -104,15 +104,15 @@ class ActivityBoard:
         RESTART -- Start new game (i.e., joystick START button)
         QUIT -- Exit game (i.e., joystick button LB + RB + BACK)
         """
-        UP = 0
-        DOWN = 1
-        LEFT = 2
-        RIGHT = 3
-        OPEN = 4
-        RETURN = 5
-        REVEAL = 6
-        RESTART = 7
-        QUIT = 8
+        UP = auto()
+        DOWN = auto()
+        LEFT = auto()
+        RIGHT = auto()
+        OPEN = auto()
+        RETURN = auto()
+        REVEAL = auto()
+        RESTART = auto()
+        QUIT = auto()
 
     @property
     def num_doors(self):
@@ -580,8 +580,8 @@ class ActivityBoard:
         """
         self._state = ActivityBoard.State.START
 
-        while self._state != ActivityBoard.State.GAME_OVER:
-            if self._state == ActivityBoard.State.START:
+        while self._state is not ActivityBoard.State.GAME_OVER:
+            if self._state is ActivityBoard.State.START:
                 self._play_random_sound(self._start_sounds)
 
                 if self._start_hidden:
@@ -598,11 +598,11 @@ class ActivityBoard:
                 self._state = ActivityBoard.State.SELECTING
 
                 pygame.event.clear()
-            elif self._state == ActivityBoard.State.SELECTING:
+            elif self._state is ActivityBoard.State.SELECTING:
                 for event in pygame.event.get():
                     action = self._translate_action(event)
 
-                    if action == ActivityBoard.Action.OPEN:
+                    if action is ActivityBoard.Action.OPEN:
                         if not selected_door.is_open:
                             self._play_random_sound(self._open_sounds)
                             self._animate_open(selected_door)
@@ -615,17 +615,17 @@ class ActivityBoard:
                             self._play_random_sound(self._oops_sounds)
 
                         pygame.event.clear()
-                    elif action == ActivityBoard.Action.RESTART:
+                    elif action is ActivityBoard.Action.RESTART:
                         play_again = True
                         self._state = ActivityBoard.State.GAME_OVER
 
                         pygame.event.clear()
-                    elif action == ActivityBoard.Action.QUIT:
+                    elif action is ActivityBoard.Action.QUIT:
                         play_again = False
                         self._state = ActivityBoard.State.GAME_OVER
 
                         pygame.event.clear()
-                    elif action == ActivityBoard.Action.REVEAL:
+                    elif action is ActivityBoard.Action.REVEAL:
                         self._play_random_sound(self._reveal_all_sounds)
                         
                         self._animate_open_all()
@@ -655,31 +655,31 @@ class ActivityBoard:
                             self._draw_updated_doors()
                         
                         pygame.event.clear()
-            elif self._state == ActivityBoard.State.IN_PROGRESS:
+            elif self._state is ActivityBoard.State.IN_PROGRESS:
                 for event in pygame.event.get():
                     action = self._translate_action(event)
 
-                    if action == ActivityBoard.Action.RETURN:
+                    if action is ActivityBoard.Action.RETURN:
                         self._draw_all_doors()
 
                         self._state = ActivityBoard.State.SELECTING
 
                         pygame.event.clear()
-            elif self._state == ActivityBoard.State.ALL_REVEALED:
+            elif self._state is ActivityBoard.State.ALL_REVEALED:
                  for event in pygame.event.get():
                     action = self._translate_action(event)
 
-                    if action == ActivityBoard.Action.RESTART:
+                    if action is ActivityBoard.Action.RESTART:
                         play_again = True
                         self._state = ActivityBoard.State.GAME_OVER
 
                         pygame.event.clear()
-                    elif action == ActivityBoard.Action.QUIT:
+                    elif action is ActivityBoard.Action.QUIT:
                         play_again = False
                         self._state = ActivityBoard.State.GAME_OVER
 
                         pygame.event.clear()
-            elif self._state == ActivityBoard.State.GAME_OVER:
+            elif self._state is ActivityBoard.State.GAME_OVER:
                 pass
             else:
                 raise RuntimeError('Invalid state in main loop')

@@ -29,7 +29,7 @@ Main program that instantiates ActivityBoard class and runs game
 Config file is specified on command line or defaults
 to config.json if not specified
 
-TODO: Determine which PyGame functions should be moved to the 
+TODO: Determine which PyGame functions should be moved to the
     ActivityBoard class
 
 https://github.com/davidsmakerworks/activity-board
