@@ -51,7 +51,6 @@ class TextRenderer:
         self.line_spacing = line_spacing
         self.text_color = text_color
 
-
     def render_surface(self, text):
         """
         Returns a PyGame Surface with the specified text rendered on it.

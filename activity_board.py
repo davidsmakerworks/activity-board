@@ -31,8 +31,6 @@ to play the game
 
 TODO: Additional rearrangement and cleanup
 
-TODO: Generalize ActivityBoard class to render on any surface
-
 https://github.com/davidsmakerworks/activity-board
 """
 
@@ -56,10 +54,6 @@ class ActivityBoard:
     """
     Class representing the entire activity board.
 
-    Currently renders onto a PyGame display surface and makes calls to
-    pygame.display.update(). In the future, this may be generalized to
-    render onto any PyGame Surface obect
-
     Properties:
     surface -- the PyGame surface where the board will be drawn
     config -- dictionary representing the activity board configuration -
@@ -67,6 +61,9 @@ class ActivityBoard:
         programmatically changing class properties
     start_hidden -- determines whether doors start hidden (i.e., the doors will
         appear one by one during startup animation)
+    surface_is_display -- determines whether the surface object is to be
+        treated as a PyGame display (i.e., calling pygame.display.update() when
+        needed)
 
     TODO: Clean up properties and methods related to door coordinates,
         door sizes, etc.
@@ -89,7 +86,6 @@ class ActivityBoard:
         IN_PROGRESS = 2
         ALL_REVEALED = 3
         GAME_OVER = 4
-
 
     @unique
     class Action(Enum):
@@ -118,26 +114,23 @@ class ActivityBoard:
         RESTART = 7
         QUIT = 8
 
-
     @property
     def num_doors(self):
         """Returns total number of doors on the board."""
         return self._doors_horiz * self._doors_vert
-
 
     @property
     def door_width(self):
         """Returns width (in pixels) of one door."""
         return self._surface.get_width() // self._doors_horiz
 
-
     @property
     def door_height(self):
         """Returns height (in pixels) of one door."""
         return self._surface.get_height() // self._doors_vert
 
-
-    def __init__(self, surface, config, start_hidden=False):
+    def __init__(
+        self, surface, config, start_hidden=False, surface_is_display=True):
         """
         Creates instance of class using properties shown in class documentation.
         """
@@ -154,6 +147,8 @@ class ActivityBoard:
 
         self._surface = surface
         self._config = config
+
+        self._surface_is_display = surface_is_display
 
         self._bg_color = pygame.Color(config['board']['bg_color'])
 
@@ -202,13 +197,11 @@ class ActivityBoard:
             self._joystick = pygame.joystick.Joystick(0)
             self._joystick.init()
 
-
     def _door_x_coord(self, index):
         """
         Calculate and return the screen X coordinate (in pixels) of the door.
         """
         return (index % self._doors_horiz) * self.door_width
-
 
     def _door_y_coord(self, index):
         """
@@ -216,15 +209,14 @@ class ActivityBoard:
         """
         return (index // self._doors_horiz) * self.door_height
 
-
-    def _clear_display(self):
+    def _clear_surface(self):
         """
         Clear the underlying surface by filling with background color.
         """
         self._surface.fill(self.bg_color)
 
-        pygame.display.update()
-
+        if self._surface_is_display:
+            pygame.display.update()
 
     def _read_activities(self, file_name):
         """Read activities from file (one per line)."""
@@ -236,7 +228,6 @@ class ActivityBoard:
 
         return activities
 
-
     def _build_sound_list(self, sound_files):
         """
         Builds a list of PyGame Sound objects given a list of sound file names.
@@ -247,7 +238,6 @@ class ActivityBoard:
             sound_list.append(pygame.mixer.Sound(f))
 
         return sound_list
-
 
     def _build_door_list(self, activities, doors_hidden=False):
         """
@@ -308,7 +298,6 @@ class ActivityBoard:
 
         return doors
 
-
     def _play_random_sound(self, sound_list):
         """
         Plays one random sound from a list of PyGame Sound objects.
@@ -322,7 +311,6 @@ class ActivityBoard:
         sound = random.choice(sound_list)
 
         sound.play()
-
 
     def _get_new_selection(self, door, action):
         """
@@ -370,7 +358,6 @@ class ActivityBoard:
         new_index = new_index_v * self._doors_horiz + new_index_h
 
         return new_index
-
 
     def _translate_action(self, event):
         """
@@ -433,7 +420,6 @@ class ActivityBoard:
         
         return None
 
-
     def _draw_door(self, door, update_display=True):
         """
         Draws door onto activity board surface.
@@ -451,9 +437,8 @@ class ActivityBoard:
                 (self._door_x_coord(door.index),
                 self._door_y_coord(door.index)))
 
-        if update_display:
+        if update_display and self._surface_is_display:
             pygame.display.update()
-
 
     def _draw_updated_doors(self):
         """
@@ -464,9 +449,9 @@ class ActivityBoard:
             if d.is_updated:
                 self._draw_door(d, update_display=False)
                 d.is_updated = False
-
-        pygame.display.update()
-
+    
+        if self._surface_is_display:
+            pygame.display.update()
 
     def _draw_all_doors(self):
         """
@@ -478,9 +463,9 @@ class ActivityBoard:
         for d in self._doors:
             self._draw_door(d, update_display=False)
             d.is_updated = False
-
-        pygame.display.update()
-
+        
+        if self._surface_is_display:
+            pygame.display.update()
 
     def _show_activity(self, door):
         """
@@ -501,8 +486,8 @@ class ActivityBoard:
                 ((self._width // 2) - (activity_rect.width // 2),
                 (self._height // 2) - (activity_rect.height // 2)))
 
-        pygame.display.update()
-
+        if self._surface_is_display:
+            pygame.display.update()
 
     def _animate_intro(self):
         """
@@ -527,7 +512,6 @@ class ActivityBoard:
 
             time.sleep(self._intro_step_time)
 
-
     def _animate_open(self, door):
         """
         Animates the opening of a Door object by repeatedly updating the door's
@@ -545,7 +529,6 @@ class ActivityBoard:
             self._draw_door(door)
 
             time.sleep(door.props.open_step_time)
-
 
     def _animate_open_all(self):
         """
@@ -580,7 +563,6 @@ class ActivityBoard:
             d.is_updated = True
 
         self._draw_updated_doors()
-
 
     def run(self):
         """

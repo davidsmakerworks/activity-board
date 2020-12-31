@@ -80,7 +80,8 @@ def main():
         board = ActivityBoard(
             surface=screen_surface,
             config=config,
-            start_hidden=True)
+            start_hidden=True,
+            surface_is_display=True)
 
         play_again = board.run()
 

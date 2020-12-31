@@ -62,5 +62,6 @@ class Screen:
 
         pygame.display.update()
 
+
 if __name__ == '__main__':
     print('This file should not be run directly. Run main.py instead.')
