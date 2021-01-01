@@ -68,7 +68,5 @@
         "cross_offset": 20,
         "open_step_time": 0.02
     },
-    "activity_file": "activities.txt",
-    "debug": false,
-    "debug2": false
+    "activity_file": "activities.txt"
 }

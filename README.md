@@ -38,7 +38,3 @@ Example (Windows): `py main.py`
 
 ## Limitations/Possible Enhancements
 - Time delays are optimized for Raspberry Pi 3 and might need to be changed for other versions
-
-## Debugging (not yet implemented)
-- Debug mode can be activated by setting the **debug** option in the configuration file to **true**
-- Extra debugging can be activated by setting the **debug2** option in the configuration file to **true**

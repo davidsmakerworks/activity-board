@@ -29,8 +29,6 @@ A fun way to select random activities
 This file contains main ActivityBoard class that can be instantiated
 to play the game
 
-TODO: Additional rearrangement and cleanup
-
 https://github.com/davidsmakerworks/activity-board
 """
 

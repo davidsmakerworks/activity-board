@@ -26,8 +26,6 @@ Activity Selection Board
 
 Screen class
 
-TODO: Fix constructor docstrings
-
 https://github.com/davidsmakerworks/activity-board
 """
 

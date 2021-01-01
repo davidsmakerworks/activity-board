@@ -26,8 +26,6 @@ Activity Selection Board
 
 Text rendering utility class
 
-TODO: Fix constructor docstrings
-
 https://github.com/davidsmakerworks/activity-board
 """
 
