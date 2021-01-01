@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 David Rice
+# Copyright (c) 2021 David Rice
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ class Screen:
     Properties:
     width -- screen width in pixels
     height -- screen height in pixels
-    bg_color -- PyGame Color object representing the background color to use
+    bg_color -- pygame Color object representing the background color to use
     fullscreen -- boolean representing whether full-screen display
         should be used
     """

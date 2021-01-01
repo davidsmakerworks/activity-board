@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 David Rice
+# Copyright (c) 2021 David Rice
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,6 @@ Door-related classes
 
 TODO: Make certain sounds a property of the door for increased variation
 
-TODO: Fix constructor docstrings
-
 https://github.com/davidsmakerworks/activity-board
 
 """
@@ -46,9 +44,9 @@ class DoorProperties:
     """
     Class to contain configurable properties of a Door object.
 
-    All color-related properties are PyGame Color objects.
+    All color-related properties are pygame Color objects.
 
-    All font-related properties are PyGame Font objects.
+    All font-related properties are pygame Font objects.
 
     Properties:
     bg_color -- background color of the underlying activity board surface
@@ -78,7 +76,6 @@ class DoorProperties:
             number_font: pygame.font.Font, border_size: int,
             ellipse_margin: int, cross_width: int, cross_offset: int,
             open_step_time: float) -> None:
-        """Create instance using properties as shown in class documentation."""
         self.bg_color = bg_color
         self.door_color = door_color
         self.ellipse_color = ellipse_color
@@ -128,7 +125,6 @@ class Door:
             is_open: Optional[bool] = False,
             is_revealed: Optional[bool] = False,
             is_hidden: Optional[bool] = False) -> None:
-        """Initialize all object properties as shown in class documentation."""
         self.index = index
         self.height = height
         self.width = width

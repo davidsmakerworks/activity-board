@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 David Rice
+# Copyright (c) 2021 David Rice
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,10 @@ https://github.com/davidsmakerworks/activity-board
 """
 
 
-from enum import Enum
+from enum import IntEnum
 
 
-class Button(Enum):
+class Button(IntEnum):
     BTN_A = 0
     BTN_B = 1
     BTN_X = 2

@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 David Rice
+# Copyright (c) 2021 David Rice
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,6 @@ Main program that instantiates ActivityBoard class and runs game
 Config file is specified on command line or defaults
 to config.json if not specified
 
-TODO: Determine which PyGame functions should be moved to the
-    ActivityBoard class
-
 https://github.com/davidsmakerworks/activity-board
 """
 
@@ -48,7 +45,7 @@ from screen import Screen
 
 def main() -> None:
     """
-    Main program that does some PyGame initialization and runs the
+    Main program that does some pygame initialization and runs the
     activity board.
     """
     if len(sys.argv) > 1:
@@ -65,6 +62,8 @@ def main() -> None:
 
     random.seed()
 
+    # Need to hide mouse pointer here since the ActivityBoard class
+    # might be used to render on a surface instead of a display
     pygame.mouse.set_visible(False)
 
     screen = Screen(

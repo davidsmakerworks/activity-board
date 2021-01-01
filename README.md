@@ -7,7 +7,7 @@
 
 ## Requirements
 - Python 3.6 or later
-- PyGame 1.9.4post1 or later (PyGame 2 may not work on Raspberry Pi)
+- Pygame 1.9.4post1 or later (pygame 2 may not work on Raspberry Pi)
 
 ## Instructions
 Edit the file `activities.txt` (unless a different file is specified in configuration) with your desired activity choices. Use a back quote (`) to indicate a new line.

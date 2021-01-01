@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 David Rice
+# Copyright (c) 2021 David Rice
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,9 +40,9 @@ class TextRenderer:
     Class to assist with rendering text surfaces.
 
     Properties:
-    font -- PyGame Font object used to render text
+    font -- pygame Font object used to render text
     line_spacing -- space (in pixels) between text lines
-    text_color -- PyGame Color object representing text color
+    text_color -- pygame Color object representing text color
     """
 
     def __init__(
@@ -57,7 +57,7 @@ class TextRenderer:
 
     def render_surface(self, text: str) -> pygame.Surface:
         """
-        Returns a PyGame Surface with the specified text rendered on it.
+        Returns a pygame Surface with the specified text rendered on it.
 
         Size of the surface is minimum size necessary to fully contain text.
 

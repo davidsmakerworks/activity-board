@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2020 David Rice
+# Copyright (c) 2021 David Rice
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,6 @@ to play the game
 
 TODO: Additional rearrangement and cleanup
 
-TODO: Fix constructor docstrings
-
 https://github.com/davidsmakerworks/activity-board
 """
 
@@ -45,7 +43,7 @@ from typing import Optional, List
 
 import pygame
 
-# Wildcard import used here based on standard PyGame code style
+# Wildcard import used here based on standard pygame code style
 from pygame.locals import *
 
 from button import Button
@@ -58,14 +56,14 @@ class ActivityBoard:
     Class representing the entire activity board.
 
     Properties:
-    surface -- the PyGame surface where the board will be drawn
+    surface -- the pygame surface where the board will be drawn
     config -- dictionary representing the activity board configuration -
         almost all configuration is done through this object rather than by
         programmatically changing class properties
     start_hidden -- determines whether doors start hidden (i.e., the doors will
         appear one by one during startup animation)
     surface_is_display -- determines whether the surface object is to be
-        treated as a PyGame display (i.e., calling pygame.display.update() when
+        treated as a pygame display (i.e., calling pygame.display.update() when
         needed)
 
     TODO: Clean up properties and methods related to door coordinates,
@@ -133,12 +131,9 @@ class ActivityBoard:
         return self._surface.get_height() // self._doors_vert
 
     def __init__(
-        self, surface: pygame.Surface, config: dict,
-        start_hidden: Optional[bool] = False,
-        surface_is_display: Optional[bool] = True) -> None:
-        """
-        Creates instance of class using properties shown in class documentation.
-        """
+            self, surface: pygame.Surface, config: dict,
+            start_hidden: Optional[bool] = False,
+            surface_is_display: Optional[bool] = True) -> None:
         doors_horiz = config['board']['doors_horiz']
         doors_vert = config['board']['doors_vert']
 
@@ -197,6 +192,12 @@ class ActivityBoard:
 
         self._intro_step_time = config['board']['intro_step_time']
 
+        # Initialize pygame if it hasn't been initialized already
+        if not pygame.get_init():
+            # Use small buffer size to prevent delays when playing sounds
+            pygame.mixer.init(buffer=512)
+            pygame.init()
+
         # Joystick is optional - see documentation for controls
         if pygame.joystick.get_count():
             self._joystick = pygame.joystick.Joystick(0)
@@ -236,7 +237,7 @@ class ActivityBoard:
     def _build_sound_list(
             self, sound_files: List[str]) -> List[pygame.mixer.Sound]:
         """
-        Builds a list of PyGame Sound objects given a list of sound file names.
+        Builds a list of pygame Sound objects given a list of sound file names.
         """
         sound_list = []
 
@@ -308,7 +309,7 @@ class ActivityBoard:
 
     def _play_random_sound(self, sound_list: List[pygame.mixer.Sound]) -> None:
         """
-        Plays one random sound from a list of PyGame Sound objects.
+        Plays one random sound from a list of pygame Sound objects.
 
         This should be used for all sound playback to allow for the possibility
         of adding multiple sounds.
@@ -369,15 +370,16 @@ class ActivityBoard:
 
     def _translate_action(self, event: pygame.event.Event) -> Action:
         """
-        Translate particular PyGame events into generalized in-game actions.
+        Translate particular pygame events into generalized in-game actions.
 
         Returns a value from the Action enum if the event represents a valid
         action, otherwise returns None.
 
         Arguments:
-        event -- the PyGame event to be translated
+        event -- the pygame event to be translated
         """
         if event.type == JOYBUTTONDOWN:
+            # Button is an IntEnum so compare by value instead of identity
             if event.button == Button.BTN_A:
                 return ActivityBoard.Action.OPEN
             elif event.button == Button.BTN_B:
@@ -435,7 +437,7 @@ class ActivityBoard:
 
         Arguments:
         door -- the Door object to render
-        update_display -- boolean that determines whether the PyGame display
+        update_display -- boolean that determines whether the pygame display
             should be updated after drawing. Set to False when drawing
             multiple doors in a loop.
         """
@@ -639,7 +641,7 @@ class ActivityBoard:
                         
                         self._animate_open_all()
 
-                        self.state = ActivityBoard.State.ALL_REVEALED
+                        self._state = ActivityBoard.State.ALL_REVEALED
 
                         pygame.event.clear()
                     elif action in [
