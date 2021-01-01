@@ -31,6 +31,8 @@ to play the game
 
 TODO: Additional rearrangement and cleanup
 
+TODO: Fix constructor docstrings
+
 https://github.com/davidsmakerworks/activity-board
 """
 
@@ -39,6 +41,7 @@ import random
 import time
 
 from enum import Enum, unique, auto
+from typing import Optional, List
 
 import pygame
 
@@ -115,22 +118,24 @@ class ActivityBoard:
         QUIT = auto()
 
     @property
-    def num_doors(self):
+    def num_doors(self) -> int:
         """Returns total number of doors on the board."""
         return self._doors_horiz * self._doors_vert
 
     @property
-    def door_width(self):
+    def door_width(self) -> int:
         """Returns width (in pixels) of one door."""
         return self._surface.get_width() // self._doors_horiz
 
     @property
-    def door_height(self):
+    def door_height(self) -> int:
         """Returns height (in pixels) of one door."""
         return self._surface.get_height() // self._doors_vert
 
     def __init__(
-        self, surface, config, start_hidden=False, surface_is_display=True):
+        self, surface: pygame.Surface, config: dict,
+        start_hidden: Optional[bool] = False,
+        surface_is_display: Optional[bool] = True) -> None:
         """
         Creates instance of class using properties shown in class documentation.
         """
@@ -139,11 +144,11 @@ class ActivityBoard:
 
         if surface.get_width() % doors_horiz != 0:
             raise RuntimeError('surface width must be an integer '
-                    'multiple of doors_horiz')
+                'multiple of doors_horiz')
 
         if surface.get_height() % doors_vert != 0:
             raise RuntimeError('surface height must be an integer '
-                    'multiple of doors_vert')
+                'multiple of doors_vert')
 
         self._surface = surface
         self._config = config
@@ -166,9 +171,9 @@ class ActivityBoard:
 
         # One full-screen activity renderer for the whole class
         self.activity_renderer = TextRenderer(
-                activity_font,
-                line_spacing,
-                activity_color)
+            activity_font,
+            line_spacing,
+            activity_color)
 
         self._doors_horiz = doors_horiz
         self._doors_vert = doors_vert
@@ -197,19 +202,19 @@ class ActivityBoard:
             self._joystick = pygame.joystick.Joystick(0)
             self._joystick.init()
 
-    def _door_x_coord(self, index):
+    def _door_x_coord(self, index: int) -> int:
         """
         Calculate and return the screen X coordinate (in pixels) of the door.
         """
         return (index % self._doors_horiz) * self.door_width
 
-    def _door_y_coord(self, index):
+    def _door_y_coord(self, index: int) -> int:
         """
         Calculate and return the screen Y coordinate (in pixels) of the door.
         """
         return (index // self._doors_horiz) * self.door_height
 
-    def _clear_surface(self):
+    def _clear_surface(self) -> None:
         """
         Clear the underlying surface by filling with background color.
         """
@@ -218,7 +223,7 @@ class ActivityBoard:
         if self._surface_is_display:
             pygame.display.update()
 
-    def _read_activities(self, file_name):
+    def _read_activities(self, file_name: str) -> List[str]:
         """Read activities from file (one per line)."""
         activities = []
 
@@ -228,7 +233,8 @@ class ActivityBoard:
 
         return activities
 
-    def _build_sound_list(self, sound_files):
+    def _build_sound_list(
+            self, sound_files: List[str]) -> List[pygame.mixer.Sound]:
         """
         Builds a list of PyGame Sound objects given a list of sound file names.
         """
@@ -239,7 +245,9 @@ class ActivityBoard:
 
         return sound_list
 
-    def _build_door_list(self, activities, doors_hidden=False):
+    def _build_door_list(
+            self, activities: List[str],
+            doors_hidden: Optional[bool] = False) -> List[Door]:
         """
         Build list of Door objects for use on the activity board.
 
@@ -289,16 +297,16 @@ class ActivityBoard:
             activities.remove(activity)
 
             doors.append(Door(
-                    index=i,
-                    height=self.door_height,
-                    width=self.door_width,
-                    activity=activity,
-                    props=props,
-                    is_hidden=doors_hidden))
+                index=i,
+                height=self.door_height,
+                width=self.door_width,
+                activity=activity,
+                props=props,
+                is_hidden=doors_hidden))
 
         return doors
 
-    def _play_random_sound(self, sound_list):
+    def _play_random_sound(self, sound_list: List[pygame.mixer.Sound]) -> None:
         """
         Plays one random sound from a list of PyGame Sound objects.
 
@@ -312,7 +320,7 @@ class ActivityBoard:
 
         sound.play()
 
-    def _get_new_selection(self, door, action):
+    def _get_new_selection(self, door: Door, action: Action) -> int:
         """
         Return new door index based on originally selected door and 
         direction of movement.
@@ -359,7 +367,7 @@ class ActivityBoard:
 
         return new_index
 
-    def _translate_action(self, event):
+    def _translate_action(self, event: pygame.event.Event) -> Action:
         """
         Translate particular PyGame events into generalized in-game actions.
 
@@ -420,7 +428,8 @@ class ActivityBoard:
         
         return None
 
-    def _draw_door(self, door, update_display=True):
+    def _draw_door(
+            self, door: Door, update_display: Optional[bool] = True) -> None:
         """
         Draws door onto activity board surface.
 
@@ -433,14 +442,14 @@ class ActivityBoard:
         door_surface = door.get_door_surface()
 
         self._surface.blit(
-                door_surface,
-                (self._door_x_coord(door.index),
-                self._door_y_coord(door.index)))
+            door_surface,
+            (self._door_x_coord(door.index),
+            self._door_y_coord(door.index)))
 
         if update_display and self._surface_is_display:
             pygame.display.update()
 
-    def _draw_updated_doors(self):
+    def _draw_updated_doors(self) -> None:
         """
         Draws only doors that are marked as being changed by setting their
         is_updated property.
@@ -453,7 +462,7 @@ class ActivityBoard:
         if self._surface_is_display:
             pygame.display.update()
 
-    def _draw_all_doors(self):
+    def _draw_all_doors(self) -> None:
         """
         Draws all doors onto activity board surface.
 
@@ -467,7 +476,7 @@ class ActivityBoard:
         if self._surface_is_display:
             pygame.display.update()
 
-    def _show_activity(self, door):
+    def _show_activity(self, door: Door) -> None:
         """
         Shows the activity related to a particular door in
         a large font on the whole activity board surface.
@@ -489,7 +498,7 @@ class ActivityBoard:
         if self._surface_is_display:
             pygame.display.update()
 
-    def _animate_intro(self):
+    def _animate_intro(self) -> None:
         """
         Runs the animated intro sequence, which shows doors one
         by one in a random order.
@@ -512,7 +521,7 @@ class ActivityBoard:
 
             time.sleep(self._intro_step_time)
 
-    def _animate_open(self, door):
+    def _animate_open(self, door: Door) -> None:
         """
         Animates the opening of a Door object by repeatedly updating the door's
         pct_open property and calling _draw_door() until the door is fully
@@ -530,7 +539,7 @@ class ActivityBoard:
 
             time.sleep(door.props.open_step_time)
 
-    def _animate_open_all(self):
+    def _animate_open_all(self) -> None:
         """
         Animates the opening of all unopened doors for the endgame reveal.
 
@@ -564,7 +573,7 @@ class ActivityBoard:
 
         self._draw_updated_doors()
 
-    def run(self):
+    def run(self) -> bool:
         """
         Runs the activity board for one game.
 
@@ -637,9 +646,10 @@ class ActivityBoard:
                             ActivityBoard.Action.UP,
                             ActivityBoard.Action.DOWN,
                             ActivityBoard.Action.LEFT,
-                            ActivityBoard.Action.RIGHT]:
+                            ActivityBoard.Action.RIGHT
+                    ]:
                         new_index = self._get_new_selection(
-                                selected_door, action)
+                            selected_door, action)
 
                         if new_index != selected_door.index:
                             selected_door.is_selected = False

@@ -26,6 +26,8 @@ Activity Selection Board
 
 Text rendering utility class
 
+TODO: Fix constructor docstrings
+
 https://github.com/davidsmakerworks/activity-board
 """
 
@@ -43,7 +45,9 @@ class TextRenderer:
     text_color -- PyGame Color object representing text color
     """
 
-    def __init__(self, font, line_spacing, text_color):
+    def __init__(
+            self, font: pygame.font.Font, line_spacing: int,
+            text_color: pygame.Color) -> None:
         """
         Create instance using properties as shown in class documentation.
         """
@@ -51,7 +55,7 @@ class TextRenderer:
         self.line_spacing = line_spacing
         self.text_color = text_color
 
-    def render_surface(self, text):
+    def render_surface(self, text: str) -> pygame.Surface:
         """
         Returns a PyGame Surface with the specified text rendered on it.
 

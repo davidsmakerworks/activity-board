@@ -26,9 +26,13 @@ Activity Selection Board
 
 Screen class
 
+TODO: Fix constructor docstrings
+
 https://github.com/davidsmakerworks/activity-board
 """
 
+
+from typing import Optional
 
 import pygame
 
@@ -46,7 +50,9 @@ class Screen:
     fullscreen -- boolean representing whether full-screen display
         should be used
     """
-    def __init__(self, width, height, bg_color, fullscreen=False):
+    def __init__(
+            self, width: int, height: int, bg_color: pygame.Color,
+            fullscreen: Optional[bool] = False) -> None:
         self.width = width
         self.height = height
 

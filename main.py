@@ -46,7 +46,7 @@ from activity_board import ActivityBoard
 from screen import Screen
 
 
-def main():
+def main() -> None:
     """
     Main program that does some PyGame initialization and runs the
     activity board.
@@ -68,10 +68,10 @@ def main():
     pygame.mouse.set_visible(False)
 
     screen = Screen(
-            width=config['display']['width'],
-            height=config['display']['height'],
-            bg_color=pygame.Color(config['board']['bg_color']),
-            fullscreen=config['display']['fullscreen'])
+        width=config['display']['width'],
+        height=config['display']['height'],
+        bg_color=pygame.Color(config['board']['bg_color']),
+        fullscreen=config['display']['fullscreen'])
 
     screen_surface = screen.surface
     play_again = True

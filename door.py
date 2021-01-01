@@ -28,10 +28,14 @@ Door-related classes
 
 TODO: Make certain sounds a property of the door for increased variation
 
+TODO: Fix constructor docstrings
+
 https://github.com/davidsmakerworks/activity-board
 
 """
 
+
+from typing import Optional 
 
 import pygame
 
@@ -66,11 +70,14 @@ class DoorProperties:
         performance.
     """
     def __init__(
-            self, bg_color, door_color, ellipse_color, number_color,
-            cross_color, selection_color, activity_color,
-            unused_color, activity_font, line_spacing, number_font,
-            border_size, ellipse_margin, cross_width, cross_offset,
-            open_step_time):
+            self, bg_color: pygame.Color, door_color: pygame.Color,
+            ellipse_color: pygame.Color, number_color: pygame.Color,
+            cross_color: pygame.Color, selection_color:pygame.Color,
+            activity_color: pygame.Color, unused_color: pygame.Color,
+            activity_font: pygame.Color, line_spacing: pygame.Color,
+            number_font: pygame.font.Font, border_size: int,
+            ellipse_margin: int, cross_width: int, cross_offset: int,
+            open_step_time: float) -> None:
         """Create instance using properties as shown in class documentation."""
         self.bg_color = bg_color
         self.door_color = door_color
@@ -116,9 +123,11 @@ class Door:
     """
 
     def __init__(
-            self, index, height, width, activity, props,
-            is_selected=False, is_open=False, is_revealed=False,
-            is_hidden=False):
+            self, index: int, height: int, width: int, activity: str,
+            props: DoorProperties, is_selected: Optional[bool] = False,
+            is_open: Optional[bool] = False,
+            is_revealed: Optional[bool] = False,
+            is_hidden: Optional[bool] = False) -> None:
         """Initialize all object properties as shown in class documentation."""
         self.index = index
         self.height = height
@@ -136,29 +145,29 @@ class Door:
         # Always assume that a new door starts fully closed
         self.pct_open = 0
 
-    def _draw_cross(self, surf):
+    def _draw_cross(self, surf: pygame.Surface) -> None:
         """
         Draws a cross (X) on the door surface to show that the door has
         already been opened.
         """
         pygame.draw.line(
-                    surf,
-                    self.props.cross_color,
-                    (self.props.cross_offset, self.props.cross_offset * 2),
-                    (self.width - self.props.cross_offset,
-                            self.height - self.props.cross_offset * 2),
-                    self.props.cross_width)
+            surf,
+            self.props.cross_color,
+            (self.props.cross_offset, self.props.cross_offset * 2),
+            (self.width - self.props.cross_offset,
+                self.height - self.props.cross_offset * 2),
+            self.props.cross_width)
 
         pygame.draw.line(
-                surf,
-                self.props.cross_color,
-                (self.props.cross_offset,
-                        self.height - self.props.cross_offset * 2),
-                (self.width - self.props.cross_offset,
-                        self.props.cross_offset * 2),
-                self.props.cross_width)
+            surf,
+            self.props.cross_color,
+            (self.props.cross_offset,
+                self.height - self.props.cross_offset * 2),
+            (self.width - self.props.cross_offset,
+                self.props.cross_offset * 2),
+            self.props.cross_width)
 
-    def get_door_surface(self):
+    def get_door_surface(self) -> pygame.Surface:
         """
         Build and return a pygame Surface object representing the door in
         its current state based on the Door object properties.
@@ -168,15 +177,15 @@ class Door:
         surf = pygame.Surface((self.width, self.height))
 
         interior_rect = pygame.Rect(
-                self.props.border_size,
-                self.props.border_size,
-                self.width - self.props.border_size * 2,
-                self.height - self.props.border_size * 2)
+            self.props.border_size,
+            self.props.border_size,
+            self.width - self.props.border_size * 2,
+            self.height - self.props.border_size * 2)
 
         activity_renderer = TextRenderer(
-                    font=self.props.activity_font,
-                    line_spacing=self.props.line_spacing,
-                    text_color=self.props.activity_color)
+            font=self.props.activity_font,
+            line_spacing=self.props.line_spacing,
+            text_color=self.props.activity_color)
 
         if self.is_hidden:
             # Door is hidden - render as blank box
@@ -207,9 +216,9 @@ class Door:
 
             surf.fill(self.props.bg_color)
             surf.blit(
-                    activity_surface,
-                    ((self.width // 2) - (activity_rect.width // 2),
-                    (self.height // 2) - (activity_rect.height // 2)))
+                activity_surface,
+                ((self.width // 2) - (activity_rect.width // 2),
+                (self.height // 2) - (activity_rect.height // 2)))
         else:
             if self.is_selected:
                 # If the door is currently selected, render a box around the
@@ -221,22 +230,22 @@ class Door:
             surf.fill(self.props.door_color, interior_rect)
 
             ellipse_rect = pygame.Rect(
-                    self.props.ellipse_margin,
-                    self.props.ellipse_margin,
-                    self.width - self.props.ellipse_margin * 2,
-                    self.height - self.props.ellipse_margin * 2)
+                self.props.ellipse_margin,
+                self.props.ellipse_margin,
+                self.width - self.props.ellipse_margin * 2,
+                self.height - self.props.ellipse_margin * 2)
 
             pygame.draw.ellipse(
-                    surf, self.props.ellipse_color, ellipse_rect)
+                surf, self.props.ellipse_color, ellipse_rect)
 
             number_surface = self.props.number_font.render(
                     str(self.index + 1), True, self.props.number_color)
             number_rect = number_surface.get_rect()
 
             surf.blit(
-                    number_surface,
-                    ((self.width // 2) - (number_rect.width // 2),
-                    (self.height // 2) - (number_rect.height // 2)))
+                number_surface,
+                ((self.width // 2) - (number_rect.width // 2),
+                (self.height // 2) - (number_rect.height // 2)))
 
             # If the door is partially "open", reveal a portion of the
             # activity text surface
@@ -246,7 +255,7 @@ class Door:
             # completely open.
             if self.pct_open > 0:
                 activity_small_surface = activity_renderer.render_surface(
-                        self.activity)
+                    self.activity)
 
                 small_rect = activity_small_surface.get_rect()
 
@@ -258,9 +267,9 @@ class Door:
                 open_surface.fill(self.props.bg_color)
 
                 open_surface.blit(
-                        activity_small_surface,
-                        ((self.width // 2) - (small_rect.width // 2),
-                        (self.height // 2) - (small_rect.height // 2)))
+                    activity_small_surface,
+                    ((self.width // 2) - (small_rect.width // 2),
+                    (self.height // 2) - (small_rect.height // 2)))
 
                 x = (self.width - open_width) // 2
                 y = (self.height - open_height) // 2
