@@ -388,9 +388,19 @@ class ActivityBoard:
             elif event.button == Button.BTN_START:
                 return ActivityBoard.Action.RESTART
             elif event.button == Button.BTN_BACK:
-                if (self._joystick.get_button(Button.BTN_LB)
-                        and self._joystick.get_button(Button.BTN_RB)):
-                    return ActivityBoard.Action.QUIT
+                    timestamp = time.time()
+
+                    pygame.event.clear()
+
+                    # Only return QUIT action if Back button is held for
+                    # at least 2 seconds
+                    while self._joystick.get_button(Button.BTN_BACK):
+                        # Event queue needs to be pumped in order for
+                        # get_button() to update properly
+                        pygame.event.pump()
+                        
+                        if time.time() - timestamp > 2:
+                            return ActivityBoard.Action.QUIT
         elif event.type == JOYHATMOTION:
             if event.value[0] and event.value[1]:
                 # Diagonal movement not supported
