@@ -9,7 +9,9 @@
 - Python 3.6 or later
 - Pygame 1.9.6 (pygame 2 **not** recommended)
 
-The pre-installed version of pygame on RaspiOS is 1.9.4post1. If you get an error related to pygame.get_init(), you need to upgrade to pygame 1.9.6. To upgrade to 1.9.6, run the following command: `sudo pip3 install pygame==1.9.6`
+The pre-installed version of pygame on RaspiOS is 1.9.4post1. If you get an error related to pygame.get_init(), you need to upgrade to pygame 1.9.6. To upgrade to 1.9.6, run the following command:
+
+`sudo pip3 install pygame==1.9.6`
 
 ## Instructions
 Edit the file `activities.txt` (unless a different file is specified in configuration) with your desired activity choices. Use a back quote (`) to indicate a new line.
