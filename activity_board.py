@@ -37,7 +37,7 @@ import random
 import time
 
 from enum import Enum, unique, auto
-from typing import Optional, List
+from typing import List
 
 import pygame
 
@@ -130,8 +130,8 @@ class ActivityBoard:
 
     def __init__(
             self, surface: pygame.Surface, config: dict,
-            start_hidden: Optional[bool] = False,
-            surface_is_display: Optional[bool] = True) -> None:
+            start_hidden: bool = False,
+            surface_is_display: bool = True) -> None:
         doors_horiz = config['board']['doors_horiz']
         doors_vert = config['board']['doors_vert']
 
@@ -246,7 +246,7 @@ class ActivityBoard:
 
     def _build_door_list(
             self, activities: List[str],
-            doors_hidden: Optional[bool] = False) -> List[Door]:
+            doors_hidden: bool = False) -> List[Door]:
         """
         Build list of Door objects for use on the activity board.
 
@@ -341,13 +341,13 @@ class ActivityBoard:
         new_index_h = old_index_h
         new_index_v = old_index_v
 
-        if action == ActivityBoard.Action.UP:
+        if action is ActivityBoard.Action.UP:
             new_index_v = old_index_v - 1
-        elif action == ActivityBoard.Action.DOWN:
+        elif action is ActivityBoard.Action.DOWN:
             new_index_v = old_index_v + 1
-        elif action == ActivityBoard.Action.LEFT:
+        elif action is ActivityBoard.Action.LEFT:
             new_index_h = old_index_h - 1
-        elif action == ActivityBoard.Action.RIGHT:
+        elif action is ActivityBoard.Action.RIGHT:
             new_index_h = old_index_h + 1
 
         if new_index_h < 0:
@@ -439,7 +439,7 @@ class ActivityBoard:
         return None
 
     def _draw_door(
-            self, door: Door, update_display: Optional[bool] = True) -> None:
+            self, door: Door, update_display: bool = True) -> None:
         """
         Draws door onto activity board surface.
 
