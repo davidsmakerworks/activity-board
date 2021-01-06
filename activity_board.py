@@ -388,7 +388,7 @@ class ActivityBoard:
             elif event.button == Button.BTN_START:
                 return ActivityBoard.Action.RESTART
             elif event.button == Button.BTN_BACK:
-                    timestamp = time.time()
+                    timestamp = time.monotonic()
 
                     pygame.event.clear()
 
@@ -399,7 +399,7 @@ class ActivityBoard:
                         # get_button() to update properly
                         pygame.event.pump()
                         
-                        if time.time() - timestamp > 2:
+                        if time.monotonic() - timestamp > 2:
                             return ActivityBoard.Action.QUIT
         elif event.type == JOYHATMOTION:
             if event.value[0] and event.value[1]:
