@@ -70,7 +70,7 @@ class DoorProperties:
             ellipse_color: pygame.Color, number_color: pygame.Color,
             cross_color: pygame.Color, selection_color:pygame.Color,
             activity_color: pygame.Color, unused_color: pygame.Color,
-            activity_font: pygame.Color, line_spacing: pygame.Color,
+            activity_font: pygame.font.Font, line_spacing: int,
             number_font: pygame.font.Font, border_size: int,
             ellipse_margin: int, cross_width: int, cross_offset: int,
             open_step_time: float) -> None:

@@ -37,7 +37,7 @@ import random
 import time
 
 from enum import Enum, unique, auto
-from typing import List
+from typing import Union, List
 
 import pygame
 
@@ -217,7 +217,7 @@ class ActivityBoard:
         """
         Clear the underlying surface by filling with background color.
         """
-        self._surface.fill(self.bg_color)
+        self._surface.fill(self._bg_color)
 
         if self._surface_is_display:
             pygame.display.update()
@@ -366,7 +366,8 @@ class ActivityBoard:
 
         return new_index
 
-    def _translate_action(self, event: pygame.event.Event) -> Action:
+    def _translate_action(
+            self, event: pygame.event.Event) -> Union[Action, None]:
         """
         Translate particular pygame events into generalized in-game actions.
 
