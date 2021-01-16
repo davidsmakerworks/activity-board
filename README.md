@@ -9,12 +9,17 @@
 - Python 3.6 or later
 - Pygame 1.9.6 (pygame 2 **not** recommended)
 
-The pre-installed version of pygame on RaspiOS is 1.9.4post1. If you get an error related to pygame.get_init(), you need to upgrade to pygame 1.9.6. To upgrade to 1.9.6, run the following command:
-
+The pre-installed version of pygame on RaspiOS is 1.9.4post1. If you get an error related to pygame.get_init(), you need to upgrade to pygame 1.9.6. To upgrade to 1.9.6, run the following command:\
 `sudo pip3 install pygame==1.9.6`
 
 ## Instructions
-Edit the file `activities.txt` (unless a different file is specified in configuration) with your desired activity choices. Use a back quote (`) to indicate a new line.
+Edit the file `activities.txt` (unless a different file is specified in configuration) with your desired activity choices. Use a back quote (`) to indicate a new line. Multiple choices
+for times or number of repetitions can be included using parentheses and vertical bars as shown below:
+
+`(10|15|20) PUSH UPS` - this will randomly become `10 PUSH UPS`, `15 PUSH UPS` or `20 PUSH UPS`\
+`JOG (2|3) LAPS` - this will randomly become `JOG 2 LAPS` or `JOG 3 LAPS`
+
+NOTE: Only the first set of choices (i.e. items in the first set of parentheses) will be processed.
 
 Edit the configuraton file (`config.json` by default) to customize the activity board.
 

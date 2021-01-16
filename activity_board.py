@@ -295,6 +295,19 @@ class ActivityBoard:
             # Remove the activity from the list to prevent duplicates
             activities.remove(activity)
 
+            # Handle varied repetitions
+            if '(' in activity and ')' in activity:
+                # Keep the parentheses for ease of replacing later
+                rep_string = activity[
+                    activity.find('('):activity.find(')') + 1
+                ]
+
+                # Strip off any parentheses in the chosen number of reps
+                reps = random.choice(rep_string.split('|')).strip('()')
+
+                # Replace the string of options with the chosen value
+                activity = activity.replace(rep_string, reps)
+
             doors.append(Door(
                 index=i,
                 height=self.door_height,
@@ -710,3 +723,4 @@ class ActivityBoard:
 
 if __name__ == '__main__':
     print('This file should not be run directly. Run main.py instead.')
+    

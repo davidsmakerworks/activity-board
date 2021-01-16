@@ -68,7 +68,7 @@ class DoorProperties:
     def __init__(
             self, bg_color: pygame.Color, door_color: pygame.Color,
             ellipse_color: pygame.Color, number_color: pygame.Color,
-            cross_color: pygame.Color, selection_color:pygame.Color,
+            cross_color: pygame.Color, selection_color: pygame.Color,
             activity_color: pygame.Color, unused_color: pygame.Color,
             activity_font: pygame.font.Font, line_spacing: int,
             number_font: pygame.font.Font, border_size: int,
